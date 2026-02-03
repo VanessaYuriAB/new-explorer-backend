@@ -2,11 +2,10 @@
   "name": "new-explorer-backend",
   "version": "1.0.0",
   "description": "A search application for recent news based on a keyword, with a profile for storing saved articles.",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
-    "start": "node index.js",
-    "dev": "nodemon index.js",
-    "dev:open": "node -e \"require('open')(`http://localhost:${process.env.PORT}`)\" && npm run dev",
+    "dev": "cross-env NODE_ENV=development nodemon server.js",
+    "start": "cross-env NODE_ENV=production node server.js",
     "lint": "npx eslint .",
     "lint:fix": "eslint . --ext js --fix",
     "format": "prettier --write .",
@@ -47,9 +46,11 @@
   },
   "homepage": "https://github.com/VanessaYuriAB/new-explorer-backend#readme",
   "dependencies": {
+    "dotenv": "~17.2.3",
     "express": "~5.2.1"
   },
   "devDependencies": {
+    "cross-env": "^10.1.0",
     "eslint-config-prettier": "^10.1.8",
     "husky": "^9.1.7",
     "lint-staged": "^16.2.7",
