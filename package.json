@@ -48,7 +48,8 @@
   "dependencies": {
     "dotenv": "~17.2.3",
     "express": "~5.2.1",
-    "mongoose": "~9.1.5"
+    "mongoose": "~9.1.5",
+    "validator": "~13.15.26"
   },
   "devDependencies": {
     "cross-env": "^10.1.0",
