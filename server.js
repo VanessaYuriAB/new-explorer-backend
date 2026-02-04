@@ -10,9 +10,23 @@ const express = require('express');
 
 const app = express();
 
+// Conecta ao servidor Mongo DB
+const mongoose = require('mongoose');
+
+mongoose
+  .connect(process.env.MONGODB_URI)
+  .then(() => {
+    console.log(
+      `Conectado ao Mongo DB: o nome do banco de dados é ${process.env.DB_NAME}`,
+    );
+  })
+  .catch((err) => {
+    console.log(`Erro ao conectar com Mongo DB: ${err}`);
+  });
+
 // Configura porta a ser ouvida
 const { PORT } = process.env;
 
 app.listen(PORT, () => {
-  console.log(`Aplicativo escutando na porta ${PORT}`);
+  console.log(`Aplicativo escutando na porta: ${PORT}`);
 });
