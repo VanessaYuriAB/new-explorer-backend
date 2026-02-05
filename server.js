@@ -4,7 +4,7 @@ const cors = require('cors');
 
 const mongoose = require('mongoose');
 
-const usersRouter = require('./routes/users');
+const { getUser } = require('./controllers/users');
 const articlesRouter = require('./routes/articles');
 
 const handleError = require('./middlewares/errorHandler');
@@ -78,10 +78,10 @@ app.use(express.json());
 
 // Rotas privadas
 
-// Rota que define o prefixo /users
-app.use('/users', usersRouter);
+// Usuário logado: GET - '/users/me' (não usa roteamento)
+app.get('/users/me', getUser);
 
-// Rota que define o prefixo /articles
+// Roteamento para o prefixo '/articles'
 app.use('/articles', articlesRouter);
 
 // ----------------------
