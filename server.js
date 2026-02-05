@@ -5,6 +5,8 @@ const mongoose = require('mongoose');
 const usersRouter = require('./routes/users');
 const articlesRouter = require('./routes/articles');
 
+const handleError = require('./middlewares/errorHandler');
+
 // Pacote dotenv só lê .env., mas é possível especificar qual arquivo carregar
 // Ao rodar scripts (ou comandos), o Express vai pegar variáveis do NODE_ENV definido
 // Ex: npm run dev vai pegar variáveis do .env.development.
@@ -26,6 +28,13 @@ app.use('/users', usersRouter);
 
 // Rota que define o prefixo /articles
 app.use('/articles', articlesRouter);
+
+// ----------------------
+// Tratamento de erros
+// ----------------------
+
+// Tratamento centralizado de erros
+app.use(handleError);
 
 // Conecta ao servidor Mongo DB
 mongoose
