@@ -4,7 +4,7 @@ const cors = require('cors');
 
 const mongoose = require('mongoose');
 
-const { getUser } = require('./controllers/users');
+const { getUser, createUser, loginUser } = require('./controllers/users');
 const articlesRouter = require('./routes/articles');
 
 const handleError = require('./middlewares/errorHandler');
@@ -75,6 +75,14 @@ app.use(express.json());
 // --------
 // Rotas
 // --------
+
+// Rotas públicas
+
+// Registro: POST - '/signup' (não usa roteamento)
+app.post('/signup', createUser);
+
+// Login: POST - '/signin' (não usa roteamento)
+app.post('/signin', loginUser);
 
 // Rotas privadas
 
