@@ -17,6 +17,9 @@ require('dotenv').config({
 // Cria um aplicativo Express
 const app = express();
 
+// Para analisar application/json
+app.use(express.json());
+
 // --------
 // Rotas
 // --------
