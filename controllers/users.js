@@ -1,8 +1,10 @@
 // Esse arquivo é o controlador de usuários
 
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 const ConflictError = require('../errors/ConflictError');
+const ConfigError = require('../errors/ConfigError');
 const handleAsync = require('../utils/ControllersAsyncHandler');
 
 // O manipulador de solicitação getUser
@@ -35,7 +37,29 @@ const createUser = async (req, res) => {
 
 // O manipulador de solicitação loginUser
 // Verifica o e-mail e a senha passados no corpo e retorna um JWT
-const loginUser = async () => {};
+const loginUser = async (req, res) => {
+  // const { email, password } = req.body;
+
+  // Verifica dados do usuário com método do mongoose personalizado definido no schema
+  const isUserInDB = await User.findUserByCredentials(
+    req.body.email,
+    req.body.password,
+  );
+
+  // Se ok, gera o token (JWT) para manter usuários logados após autenticação - mas,
+  // antes, verifica variável de ambiente para a chave secreta do método .sign()
+  if (!process.env.JWT_SECRET) {
+    throw new ConfigError('JWT_SECRET é obrigatório!');
+  }
+
+  // O token expirará em sete dias
+  const token = jwt.sign({ _id: isUserInDB._id }, process.env.JWT_SECRET, {
+    expiresIn: '7d',
+  });
+
+  // Retorna o token (JWT)
+  res.send({ token });
+};
 
 // Exporta envolto na função wrapper utilitária para o fluxo de tratamento de erros
 // Envia o erro para o middleware de tratamento centralizado
