@@ -17,6 +17,8 @@ const userSchema = new mongoose.Schema({
   password: {
     type: String,
     required: true,
+    minlength: 8,
+    match: /^[^<>]+$/, // regex para segurança básica, '<' e '>' não são permitidos
     select: false, // o banco de dados não devolve esse campo (hash de senha) por padrão
   },
   name: {
