@@ -4,6 +4,10 @@ const cors = require('cors');
 
 const mongoose = require('mongoose');
 
+const celebrateForSignup = require('./middlewares/celebrates/celebrateForSignup');
+const celebrateForSignin = require('./middlewares/celebrates/celebrateForSignin');
+const celebrateForAuth = require('./middlewares/celebrates/celebrateForAuth');
+
 const handleAuth = require('./middlewares/authHandler');
 
 const { getUser, createUser, loginUser } = require('./controllers/users');
@@ -103,10 +107,10 @@ app.use(express.json());
 // Rotas públicas
 
 // Registro: POST - '/signup' (não usa roteamento)
-app.post('/signup', createUser);
+app.post('/signup', celebrateForSignup, createUser);
 
 // Login: POST - '/signin' (não usa roteamento)
-app.post('/signin', loginUser);
+app.post('/signin', celebrateForSignin, loginUser);
 
 // -------------------------
 // Validação e autorização
@@ -118,7 +122,7 @@ app.post('/signin', loginUser);
 // adicional
 // Caso contrário, a solicitação irá para um controlador que retornará uma mensagem de
 // erro para o cliente
-app.use(handleAuth);
+app.use(celebrateForAuth, handleAuth);
 
 // Rotas privadas (protegidas pelo middleware 'authHandler')
 
