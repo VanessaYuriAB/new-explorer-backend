@@ -11,8 +11,8 @@ const articlesRouter = require('./routes/articles');
 
 const handleError = require('./middlewares/errorHandler');
 
-const ForbiddenError = require('./errors/ForbiddenError');
 const ConfigError = require('./errors/ConfigError');
+const ForbiddenError = require('./errors/ForbiddenError');
 
 // Pacote dotenv só lê .env., mas é possível especificar qual arquivo carregar
 // Ao rodar scripts (ou comandos), o Express vai pegar variáveis do NODE_ENV definido
