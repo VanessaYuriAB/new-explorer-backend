@@ -12,6 +12,7 @@ const articlesRouter = require('./routes/articles');
 const handleError = require('./middlewares/errorHandler');
 
 const ForbiddenError = require('./errors/ForbiddenError');
+const ConfigError = require('./errors/ConfigError');
 
 // Pacote dotenv só lê .env., mas é possível especificar qual arquivo carregar
 // Ao rodar scripts (ou comandos), o Express vai pegar variáveis do NODE_ENV definido
@@ -19,6 +20,27 @@ const ForbiddenError = require('./errors/ForbiddenError');
 require('dotenv').config({
   path: `.env.${process.env.NODE_ENV}`,
 });
+
+// Verifica variáveis de ambiente
+if (!process.env.CORS_ORIGIN) {
+  throw new ConfigError('CORS_ORIGIN é obrigatório!');
+}
+
+if (!process.env.MONGODB_URI) {
+  throw new ConfigError('MONGODB_URI é obrigatório!');
+}
+
+if (!process.env.DB_NAME) {
+  throw new ConfigError('DB_NAME é obrigatório!');
+}
+
+if (!process.env.PORT) {
+  throw new ConfigError('PORT é obrigatório!');
+}
+
+if (!process.env.JWT_SECRET) {
+  throw new ConfigError('JWT_SECRET é obrigatório!');
+}
 
 // Cria um aplicativo Express
 const app = express();

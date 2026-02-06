@@ -4,7 +4,6 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 const ConflictError = require('../errors/ConflictError');
-const ConfigError = require('../errors/ConfigError');
 const handleAsync = require('../utils/ControllersAsyncHandler');
 
 // O manipulador de solicitação getUser
@@ -46,12 +45,10 @@ const loginUser = async (req, res) => {
     req.body.password,
   );
 
-  // Se ok, gera o token (JWT) para manter usuários logados após autenticação - mas,
-  // antes, verifica variável de ambiente para a chave secreta do método .sign()
-  if (!process.env.JWT_SECRET) {
-    throw new ConfigError('JWT_SECRET é obrigatório!');
-  }
+  // Verificação da variável de ambiente JWT_SECRET para a chave secreta do método .sign()
+  // é feita no início de server.js, logo após carregar o dotenv
 
+  // Se ok, gera o token (JWT) para manter usuários logados após autenticação
   // O token expirará em sete dias
   const token = jwt.sign({ _id: isUserInDB._id }, process.env.JWT_SECRET, {
     expiresIn: '7d',
