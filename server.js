@@ -4,6 +4,8 @@ const cors = require('cors');
 
 const mongoose = require('mongoose');
 
+const handleAuth = require('./middlewares/authHandler');
+
 const { getUser, createUser, loginUser } = require('./controllers/users');
 const articlesRouter = require('./routes/articles');
 
@@ -84,7 +86,19 @@ app.post('/signup', createUser);
 // Login: POST - '/signin' (não usa roteamento)
 app.post('/signin', loginUser);
 
-// Rotas privadas
+// -------------------------
+// Validação e autorização
+// -------------------------
+
+// Middleware de autorização com persistência do login
+// Recupera e verifica tokens, bem como protege rotas de usuários não autorizados
+// Se um token válido for apresentado, a solicitação continuará para o processamento
+// adicional
+// Caso contrário, a solicitação irá para um controlador que retornará uma mensagem de
+// erro para o cliente
+app.use(handleAuth);
+
+// Rotas privadas (protegidas pelo middleware 'authHandler')
 
 // Usuário logado: GET - '/users/me' (não usa roteamento)
 app.get('/users/me', getUser);
