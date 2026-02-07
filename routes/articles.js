@@ -9,6 +9,8 @@ const {
   deleteUserArticles,
 } = require('../controllers/articles');
 
+const celebrateForPost = require('../middlewares/celebrates/articles/celebrateForPost');
+
 // GET - '/articles'
 // Retorna todos os artigos salvos pelo usuário
 // Rota não usa Celebrate/Joi porque não recebe dados do cliente; utiliza apenas req.user,
@@ -18,7 +20,7 @@ articlesRouter.get('/', getUserArticles);
 // POST - '/articles'
 // Cria um artigo com a palavra-chave, título, texto, data, fonte, link, e imagem
 // passados no corpo
-articlesRouter.post('/', postUserArticles);
+articlesRouter.post('/', celebrateForPost, postUserArticles);
 
 // DELETE - '/articles/articleId'
 // Exclui o artigo armazenado pelo _id
