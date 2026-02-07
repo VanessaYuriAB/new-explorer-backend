@@ -24,7 +24,39 @@ const getUserArticles = async (req, res) => {
 };
 
 // O manipulador de solicitação postUserArticles
-const postUserArticles = async () => {};
+// Cria um artigo com a palavra-chave, título, texto, data, fonte, link, e imagem
+// passados no corpo
+const postUserArticles = async (req, res) => {
+  const { tag, title, description, publishedAt, source, url, urlToImage } =
+    req.body;
+
+  // Verifica se o artigo já existe na coleção de artigos, procurando pelo link do artigo
+  // Se sim, apenas adiciona o id do usuário atual ao owner
+  const isAlreadySaved = await Articles.findOneAndUpdate(
+    { link: url },
+    // Adiciona o _id do usuário ao array
+    { $addToSet: { owner: req.user._id } },
+    { new: true, runValidators: true },
+  );
+
+  if (isAlreadySaved) {
+    return res.send(isAlreadySaved);
+  }
+
+  // Se não, adiciona o novo artigo à coleção com o id do usuário atual em owner
+  const savedArticle = await Articles.create({
+    keyword: tag,
+    title,
+    text: description,
+    date: publishedAt,
+    source,
+    link: url,
+    image: urlToImage,
+    owner: [req.user._id],
+  });
+
+  return res.status(201).send(savedArticle);
+};
 
 // O manipulador de solicitação deleteUserArticles
 const deleteUserArticles = async () => {};
