@@ -11,6 +11,8 @@ const {
 
 // GET - '/articles'
 // Retorna todos os artigos salvos pelo usuário
+// Rota não usa Celebrate/Joi porque não recebe dados do cliente; utiliza apenas req.user,
+// preenchido pelo middleware de autenticação
 articlesRouter.get('/', getUserArticles);
 
 // POST - '/articles'
