@@ -4,11 +4,8 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 const ConflictError = require('../errors/ConflictError');
+const NotFoundError = require('../errors/NotFoundError');
 const handleAsync = require('../utils/ControllersAsyncHandler');
-
-// O manipulador de solicitação getUser
-// Retorna informações sobre o usuário logado (e-mail e nome)
-const getUser = async () => {};
 
 // O manipulador de solicitação createUser
 // Cria um usuário com o e-mail, senha e nome passados no corpo
@@ -58,10 +55,25 @@ const loginUser = async (req, res) => {
   res.send({ token });
 };
 
+// O manipulador de solicitação getUser
+// Retorna informações sobre o usuário logado (e-mail e nome)
+const getUser = async (req, res) => {
+  // const { _id } = req.user;
+
+  // Sem verificação pois a rota só é chamada, caso esteja logado
+  // O middleware de autenticação já garante que req.user exista, incluindo o campo _id
+
+  const user = await User.findById(req.user._id).orFail(() => {
+    throw new NotFoundError('Cadastro de usuário não encontrado');
+  });
+
+  res.send({ user });
+};
+
 // Exporta envolto na função wrapper utilitária para o fluxo de tratamento de erros
 // Envia o erro para o middleware de tratamento centralizado
 export default {
-  getUser: handleAsync(getUser),
   createUser: handleAsync(createUser),
   loginUser: handleAsync(loginUser),
+  getUser: handleAsync(getUser),
 };

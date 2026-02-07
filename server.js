@@ -127,6 +127,8 @@ app.use(celebrateForAuth, handleAuth);
 // Rotas privadas (protegidas pelo middleware 'authHandler')
 
 // Usuário logado: GET - '/users/me' (não usa roteamento)
+// Rota não usa Celebrate/Joi porque não recebe dados do cliente; utiliza apenas req.user,
+// preenchido pelo middleware de autenticação
 app.get('/users/me', getUser);
 
 // Roteamento para o prefixo '/articles'
