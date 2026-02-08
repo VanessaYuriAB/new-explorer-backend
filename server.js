@@ -166,7 +166,7 @@ app.use(handleError);
 
 // Conecta ao servidor Mongo DB
 mongoose
-  .connect(process.env.MONGODB_URI)
+  .connect(`${process.env.MONGODB_URI}/${process.env.DB_NAME}`)
   .then(() => {
     console.log(
       `Conectado ao Mongo DB: o nome do banco de dados é ${process.env.DB_NAME}`,
