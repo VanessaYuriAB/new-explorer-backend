@@ -174,6 +174,7 @@ mongoose
   })
   .catch((err) => {
     console.log(`Erro ao conectar com Mongo DB: ${err}`);
+    process.exit(1); // para evitar app rodando sem DB
   });
 
 // ----------------------
