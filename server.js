@@ -2,6 +2,8 @@ const express = require('express');
 
 const cors = require('cors');
 
+const helmet = require('helmet');
+
 const mongoose = require('mongoose');
 
 const { errors } = require('celebrate');
@@ -52,6 +54,10 @@ if (!process.env.PORT) {
 
 if (!process.env.JWT_SECRET) {
   throw new ConfigError('JWT_SECRET é obrigatório!');
+}
+
+if (!process.env.CSP_CONNECT_SRC) {
+  throw new ConfigError('CSP_CONNECT_SRC é obrigatório!');
 }
 
 // --------
@@ -110,6 +116,41 @@ app.use(cors(corsOptions));
 // Regex /.*/ para qlqr caminho, evita erro path-to-regex que ocorre com '*' ou '(.*)'
 // em versões recentes do Express
 app.options(/.*/, cors(corsOptions));
+
+// -------
+// Helmet
+// -------
+
+// Depois do CORS, para não sobrescrever cabeçalhos
+
+// Configuração com opções específicas
+
+// 'contentSecurityPolicy' espera um array de strings para cada diretiva (como connectSrc)
+// '.map()' com 'trim()' para ajuste de formatação pq no .env é armazenado como única
+// string, para converter em array
+const connectSrcUrls = process.env.CSP_CONNECT_SRC.split(',').map((url) =>
+  url.trim(),
+);
+
+// Baseado em diretivas definidas no frontend para CSP
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        connectSrc: ["'self'", ...connectSrcUrls],
+        imgSrc: ["'self'", 'data:', 'https:'],
+        scriptSrc: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+      },
+    },
+  }),
+);
+
+// Para 'Referrer Policy': o cabeçalho 'Referer' normalmente informa a URL da página
+// anterior quando vc navega para outra, 'same-origin' envia o referer apenas para o
+// mesmo domínio
+app.use(helmet.referrerPolicy({ policy: 'same-origin' }));
 
 // ------------
 // Body-parser
