@@ -6,6 +6,8 @@ const mongoose = require('mongoose');
 
 const { errors } = require('celebrate');
 
+const { requestLogger, errorLogger } = require('./middlewares/logger');
+
 const celebrateForSignup = require('./middlewares/celebrates/celebrateForSignup');
 const celebrateForSignin = require('./middlewares/celebrates/celebrateForSignin');
 const celebrateForAuth = require('./middlewares/celebrates/celebrateForAuth');
@@ -116,6 +118,13 @@ app.options(/.*/, cors(corsOptions));
 // Para analisar application/json
 app.use(express.json());
 
+// --------------------
+// Logs (solicitações)
+// --------------------
+
+// Habilita o registrador de solicitações
+app.use(requestLogger);
+
 // --------
 // Rotas
 // --------
@@ -149,6 +158,13 @@ app.get('/users/me', getUser);
 
 // Roteamento para o prefixo '/articles'
 app.use('/articles', articlesRouter);
+
+// -------------
+// Logs (erros)
+// -------------
+
+// Habilita o registrador de erros
+app.use(errorLogger);
 
 // ----------------------
 // Tratamento de erros
