@@ -10,6 +10,7 @@ const {
 } = require('../controllers/articles');
 
 const celebrateForPost = require('../middlewares/celebrates/articles/celebrateForPost');
+const celebrateForDelete = require('../middlewares/celebrates/articles/celebrateForDelete');
 
 // GET - '/articles'
 // Retorna todos os artigos salvos pelo usuário
@@ -24,6 +25,6 @@ articlesRouter.post('/', celebrateForPost, postUserArticles);
 
 // DELETE - '/articles/articleId'
 // Exclui o artigo armazenado pelo _id
-articlesRouter.delete('/:articleId', deleteUserArticles);
+articlesRouter.delete('/:articleId', celebrateForDelete, deleteUserArticles);
 
 export default articlesRouter;
