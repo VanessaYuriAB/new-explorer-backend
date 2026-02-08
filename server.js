@@ -4,6 +4,8 @@ const cors = require('cors');
 
 const mongoose = require('mongoose');
 
+const { errors } = require('celebrate');
+
 const celebrateForSignup = require('./middlewares/celebrates/celebrateForSignup');
 const celebrateForSignin = require('./middlewares/celebrates/celebrateForSignin');
 const celebrateForAuth = require('./middlewares/celebrates/celebrateForAuth');
@@ -137,6 +139,9 @@ app.use('/articles', articlesRouter);
 // ----------------------
 // Tratamento de erros
 // ----------------------
+
+// Tratamento centralizado de erros do Celebrate
+app.use(errors());
 
 // Tratamento centralizado de erros
 app.use(handleError);
