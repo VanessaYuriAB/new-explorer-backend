@@ -20,6 +20,10 @@ const handleError = require('./middlewares/errorHandler');
 const ConfigError = require('./errors/ConfigError');
 const ForbiddenError = require('./errors/ForbiddenError');
 
+// --------
+// Dotenv
+// --------
+
 // Pacote dotenv só lê .env., mas é possível especificar qual arquivo carregar
 // Ao rodar scripts (ou comandos), o Express vai pegar variáveis do NODE_ENV definido
 // Ex: npm run dev vai pegar variáveis do .env.development.
@@ -48,10 +52,16 @@ if (!process.env.JWT_SECRET) {
   throw new ConfigError('JWT_SECRET é obrigatório!');
 }
 
+// --------
+// Express
+// --------
+
 // Cria um aplicativo Express
 const app = express();
 
+// ------
 // CORS
+// ------
 
 // '.split(',')' para transformar a string em array
 // '.map()' com 'trim()' para remover qlqr espaço em branco que possa ter
@@ -98,6 +108,10 @@ app.use(cors(corsOptions));
 // Regex /.*/ para qlqr caminho, evita erro path-to-regex que ocorre com '*' ou '(.*)'
 // em versões recentes do Express
 app.options(/.*/, cors(corsOptions));
+
+// ------------
+// Body-parser
+// ------------
 
 // Para analisar application/json
 app.use(express.json());
@@ -146,6 +160,10 @@ app.use(errors());
 // Tratamento centralizado de erros
 app.use(handleError);
 
+// ---------------------------
+// Conexão com banco de dados
+// ---------------------------
+
 // Conecta ao servidor Mongo DB
 mongoose
   .connect(process.env.MONGODB_URI)
@@ -157,6 +175,10 @@ mongoose
   .catch((err) => {
     console.log(`Erro ao conectar com Mongo DB: ${err}`);
   });
+
+// ----------------------
+// Conexão com servidor
+// ----------------------
 
 // Configura porta a ser ouvida
 const { PORT } = process.env;
