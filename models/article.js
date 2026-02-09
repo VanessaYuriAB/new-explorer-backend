@@ -10,19 +10,23 @@ const articleSchema = new mongoose.Schema({
   },
   title: {
     type: String,
-    required: true,
+    required: false,
+    default: null,
   },
   text: {
     type: String,
-    required: true,
+    required: false,
+    default: null,
   },
   date: {
     type: Date,
-    required: true,
+    required: false,
+    default: null,
   },
   source: {
     type: String,
-    required: true,
+    required: false,
+    default: null,
   },
   link: {
     type: String,
@@ -34,9 +38,13 @@ const articleSchema = new mongoose.Schema({
   },
   image: {
     type: String,
-    required: true,
+    required: false,
+    default: null,
     validate: {
       validator: (v) => {
+        if (!v) {
+          return true;
+        }
         return validator.isURL(v);
       },
       message: (props) => {
