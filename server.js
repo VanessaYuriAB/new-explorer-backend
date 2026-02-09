@@ -21,6 +21,8 @@ const handleAuth = require('./middlewares/authHandler');
 const { getUser, createUser, loginUser } = require('./controllers/users');
 const articlesRouter = require('./routes/articles');
 
+const notFoundPage = require('./middlewares/notFoundPage');
+
 const handleError = require('./middlewares/errorHandler');
 
 const ConfigError = require('./errors/ConfigError');
@@ -228,6 +230,9 @@ app.use(errorLogger);
 
 // Tratamento centralizado de erros do Celebrate
 app.use(errors());
+
+// Tratamento para rotas não encontradas
+app.use(notFoundPage);
 
 // Tratamento centralizado de erros
 app.use(handleError);
