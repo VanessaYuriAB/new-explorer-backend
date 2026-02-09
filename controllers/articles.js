@@ -66,11 +66,14 @@ const postUserArticles = async (req, res) => {
 // O manipulador de solicitação deleteUserArticles
 // Exclui o artigo armazenado pelo _id
 const deleteUserArticles = async (req, res) => {
-  // const { _id } = req.params;
+  // Como definido na rota '/:articleId'
+  // const { articleId } = req.params;
 
-  const articleToUnsave = await Articles.findById(req.params._id).orFail(() => {
-    throw new NotFoundError('Cadastro de artigo não encontrado');
-  });
+  const articleToUnsave = await Articles.findById(req.params.articleId)
+    .select('+owner') // para o campo retornar neste find
+    .orFail(() => {
+      throw new NotFoundError('Cadastro de artigo não encontrado');
+    });
 
   // Verifica se o usuário atual é um salvador do artigo atual para poder prosseguir os
   // próximos passos do controlador
@@ -84,14 +87,16 @@ const deleteUserArticles = async (req, res) => {
   // anteriormente), deleta o recurso todo
   if (articleToUnsave.owner.length === 1) {
     // Deleta o artigo da coleção
-    const deletedArticle = await Articles.findByIdAndDelete(req.params._id);
+    const deletedArticle = await Articles.findByIdAndDelete(
+      req.params.articleId,
+    );
 
     return res.send({ deletedArticle });
   }
 
   // Se houver mais de um salvamento, apenas atualiza o array de id de usuários
   const unsavedArticle = await Articles.findByIdAndUpdate(
-    req.params._id,
+    req.params.articleId,
     // Remove o _id do usuário do array owner
     { $pull: { owner: req.user._id } },
     { new: true, runValidators: true },
