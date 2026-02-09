@@ -205,17 +205,18 @@ app.post('/signin', celebrateForSignin, loginUser);
 // adicional
 // Caso contrário, a solicitação irá para um controlador que retornará uma mensagem de
 // erro para o cliente
-app.use(celebrateForAuth, handleAuth);
+// Aplicado diretamente em cada rota privada para não interferir em rotas públicas
+// quando usuários não estiverem autenticados
 
-// Rotas privadas (protegidas pelo middleware 'authHandler')
+// Rotas privadas (protegidas pelo middleware 'authHandler' e seu celebrate)
 
 // Usuário logado: GET - '/users/me' (não usa roteamento)
 // Rota não usa Celebrate/Joi porque não recebe dados do cliente; utiliza apenas req.user,
 // preenchido pelo middleware de autenticação
-app.get('/users/me', getUser);
+app.get('/users/me', celebrateForAuth, handleAuth, getUser);
 
 // Roteamento para o prefixo '/articles'
-app.use('/articles', articlesRouter);
+app.use('/articles', celebrateForAuth, handleAuth, articlesRouter);
 
 // -------------
 // Logs (erros)
