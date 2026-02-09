@@ -24,7 +24,7 @@ const createUser = async (req, res) => {
 
   const user = await User.create({
     email: req.body.email,
-    password: hash, // adiciona se senha em hash ao banco de dado
+    password: hash, // adiciona senha em hash ao banco de dados
     name: req.body.name,
   });
 
