@@ -72,7 +72,7 @@ const getUser = async (req, res) => {
 
 // Exporta envolto na função wrapper utilitária para o fluxo de tratamento de erros
 // Envia o erro para o middleware de tratamento centralizado
-export default {
+module.exports = {
   createUser: handleAsync(createUser),
   loginUser: handleAsync(loginUser),
   getUser: handleAsync(getUser),

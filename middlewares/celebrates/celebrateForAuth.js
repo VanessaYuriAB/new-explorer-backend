@@ -12,4 +12,4 @@ const celebrateForAuth = celebrate({
     .unknown(true),
 });
 
-export default celebrateForAuth;
+module.exports = celebrateForAuth;

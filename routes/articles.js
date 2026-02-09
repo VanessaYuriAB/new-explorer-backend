@@ -27,4 +27,4 @@ articlesRouter.post('/', celebrateForPost, postUserArticles);
 // Exclui o artigo armazenado pelo _id
 articlesRouter.delete('/:articleId', celebrateForDelete, deleteUserArticles);
 
-export default articlesRouter;
+module.exports = articlesRouter;

@@ -32,4 +32,4 @@ const handleError = (err, req, res, next) => {
   return res.status(statusCode).send({ message });
 };
 
-export default handleError;
+module.exports = handleError;

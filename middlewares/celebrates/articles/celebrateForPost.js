@@ -14,4 +14,4 @@ const celebrateForPost = celebrate({
   }),
 });
 
-export default celebrateForPost;
+module.exports = celebrateForPost;

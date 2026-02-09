@@ -10,4 +10,4 @@ const celebrateForSignin = celebrate({
   }),
 });
 
-export default celebrateForSignin;
+module.exports = celebrateForSignin;

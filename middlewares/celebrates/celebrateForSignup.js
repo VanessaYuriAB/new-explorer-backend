@@ -15,4 +15,4 @@ const celebrateForSignup = celebrate({
   }),
 });
 
-export default celebrateForSignup;
+module.exports = celebrateForSignup;

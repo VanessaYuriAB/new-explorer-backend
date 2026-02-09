@@ -12,4 +12,4 @@ const celebrateForDelete = celebrate({
   }),
 });
 
-export default celebrateForDelete;
+module.exports = celebrateForDelete;

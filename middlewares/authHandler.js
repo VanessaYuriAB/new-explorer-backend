@@ -37,4 +37,4 @@ const handleAuth = (req, res, next) => {
   next();
 };
 
-export default handleAuth;
+module.exports = handleAuth;

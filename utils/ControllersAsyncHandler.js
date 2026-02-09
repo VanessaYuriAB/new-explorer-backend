@@ -12,4 +12,4 @@ function handleAsync(controller) {
   };
 }
 
-export default handleAsync;
+module.exports = handleAsync;
