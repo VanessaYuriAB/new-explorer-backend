@@ -15,6 +15,8 @@ const handleError = (err, req, res, next) => {
   }
 
   // Verifica erro de configuração em ambiente de produção
+  // Como o status HTTP é, tbm, 500, como o InternalServer, é feita a verificação por
+  // err.name
 
   // Quando variáveis de ambiente não são configuradas no ambiente de produção
   if (err.name === 'ConfigError') {
@@ -23,8 +25,8 @@ const handleError = (err, req, res, next) => {
       .send({ message: `Erro de configuração do servidor: ${err.message}` });
   }
 
-  // Para erros definidos pelas classes personalizadas: unauthorized, forbidden, not found
-  // e conflict
+  // Para erros definidos pelas classes personalizadas: unauthorized, forbidden, not found,
+  // conflict e ratelimit
   // Se não tiver statusCode definido, assume 500: erro do servidor, com status e mensagem
   // padrões definidos
   const { statusCode = 500, message = 'Ocorreu um erro no servidor' } = err;
