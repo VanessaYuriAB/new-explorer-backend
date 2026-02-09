@@ -8,6 +8,8 @@ const mongoose = require('mongoose');
 
 const { errors } = require('celebrate');
 
+const limiter = require('./middlewares/limiter');
+
 const { requestLogger, errorLogger } = require('./middlewares/logger');
 
 const celebrateForSignup = require('./middlewares/celebrates/celebrateForSignup');
@@ -57,6 +59,10 @@ if (!process.env.JWT_SECRET) {
 }
 
 if (!process.env.CSP_CONNECT_SRC) {
+  throw new ConfigError('CSP_CONNECT_SRC é obrigatório!');
+}
+
+if (!process.env.RATE_LIMIT_MAX) {
   throw new ConfigError('CSP_CONNECT_SRC é obrigatório!');
 }
 
@@ -151,6 +157,15 @@ app.use(
 // anterior quando vc navega para outra, 'same-origin' envia o referer apenas para o
 // mesmo domínio
 app.use(helmet.referrerPolicy({ policy: 'same-origin' }));
+
+// -----------
+// Rate limit
+// -----------
+
+// Depois do CORS, para não bloquear preflight
+
+// Aplica o limitador de taxa
+app.use(limiter);
 
 // ------------
 // Body-parser
