@@ -25,7 +25,6 @@ const notFoundPage = require('./middlewares/notFoundPage');
 
 const handleError = require('./middlewares/errorHandler');
 
-const ConfigError = require('./errors/ConfigError');
 const ForbiddenError = require('./errors/ForbiddenError');
 
 // --------
@@ -39,34 +38,9 @@ require('dotenv').config({
   path: `.env.${process.env.NODE_ENV}`,
 });
 
-// Verifica variáveis de ambiente
-if (!process.env.CORS_ORIGIN) {
-  throw new ConfigError('CORS_ORIGIN é obrigatório!');
-}
-
-if (!process.env.MONGODB_URI) {
-  throw new ConfigError('MONGODB_URI é obrigatório!');
-}
-
-if (!process.env.DB_NAME) {
-  throw new ConfigError('DB_NAME é obrigatório!');
-}
-
-if (!process.env.PORT) {
-  throw new ConfigError('PORT é obrigatório!');
-}
-
-if (!process.env.JWT_SECRET) {
-  throw new ConfigError('JWT_SECRET é obrigatório!');
-}
-
-if (!process.env.CSP_CONNECT_SRC) {
-  throw new ConfigError('CSP_CONNECT_SRC é obrigatório!');
-}
-
-if (!process.env.RATE_LIMIT_MAX) {
-  throw new ConfigError('CSP_CONNECT_SRC é obrigatório!');
-}
+// Executa função de configuração env: fallback para desenvolvimento e verificação
+// para produção
+require('./utils/configEnv')();
 
 // --------
 // Express
