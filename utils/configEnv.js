@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const ConfigError = require('../errors/ConfigError');
 
 const configEnv = () => {
@@ -10,7 +11,8 @@ const configEnv = () => {
     process.env.DB_NAME = process.env.DB_NAME || 'newsexplorerdb';
     process.env.CORS_ORIGIN =
       process.env.CORS_ORIGIN || 'http://localhost:3000';
-    process.env.JWT_SECRET = process.env.JWT_SECRET || 'super-secret-key';
+    process.env.JWT_SECRET =
+      process.env.JWT_SECRET || crypto.randomBytes(32).toString('hex');
     process.env.CSP_CONNECT_SRC =
       process.env.CSP_CONNECT_SRC ||
       'http://localhost:3001,https://newsapi.org';
