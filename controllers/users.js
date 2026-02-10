@@ -5,7 +5,7 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 const ConflictError = require('../errors/ConflictError');
 const NotFoundError = require('../errors/NotFoundError');
-const handleAsync = require('../utils/ControllersAsyncHandler');
+const handleAsync = require('../utils/asyncHandlerControllers');
 
 // O manipulador de solicitação createUser
 // Cria um usuário com o e-mail, senha e nome passados no corpo

@@ -3,7 +3,7 @@
 const Articles = require('../models/article');
 const NotFoundError = require('../errors/NotFoundError');
 const ForbiddenError = require('../errors/ForbiddenError');
-const handleAsync = require('../utils/ControllersAsyncHandler');
+const handleAsync = require('../utils/asyncHandlerControllers');
 
 // O manipulador de solicitação getUserArticles
 // Retorna todos os artigos salvos pelo usuário
