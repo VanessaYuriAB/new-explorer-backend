@@ -10,18 +10,11 @@ const mongoose = require('mongoose');
 
 const { errors } = require('celebrate');
 
+const routes = require('./routes/index');
+
 const limiter = require('./middlewares/limiter');
 
 const { requestLogger, errorLogger } = require('./middlewares/logger');
-
-const celebrateForSignup = require('./middlewares/celebrates/celebrateForSignup');
-const celebrateForSignin = require('./middlewares/celebrates/celebrateForSignin');
-const celebrateForAuth = require('./middlewares/celebrates/celebrateForAuth');
-
-const handleAuth = require('./middlewares/authHandler');
-
-const { getUser, createUser, loginUser } = require('./controllers/users');
-const articlesRouter = require('./routes/articles');
 
 const notFoundPage = require('./middlewares/notFoundPage');
 
@@ -174,36 +167,8 @@ app.use(requestLogger);
 // Rotas
 // --------
 
-// Rotas públicas
-
-// Registro: POST - '/signup' (não usa roteamento)
-app.post('/signup', celebrateForSignup, createUser);
-
-// Login: POST - '/signin' (não usa roteamento)
-app.post('/signin', celebrateForSignin, loginUser);
-
-// -------------------------
-// Validação e autorização
-// -------------------------
-
-// Middleware de autorização com persistência do login
-// Recupera e verifica tokens, bem como protege rotas de usuários não autorizados
-// Se um token válido for apresentado, a solicitação continuará para o processamento
-// adicional
-// Caso contrário, a solicitação irá para um controlador que retornará uma mensagem de
-// erro para o cliente
-// Aplicado diretamente em cada rota privada para não interferir em rotas públicas
-// quando usuários não estiverem autenticados
-
-// Rotas privadas (protegidas pelo middleware 'authHandler' e seu celebrate)
-
-// Usuário logado: GET - '/users/me' (não usa roteamento)
-// Rota não usa Celebrate/Joi porque não recebe dados do cliente; utiliza apenas req.user,
-// preenchido pelo middleware de autenticação
-app.get('/users/me', celebrateForAuth, handleAuth, getUser);
-
-// Roteamento para o prefixo '/articles'
-app.use('/articles', celebrateForAuth, handleAuth, articlesRouter);
+// Rota principal
+app.use('/', routes);
 
 // -------------
 // Logs (erros)
@@ -247,7 +212,6 @@ mongoose
 // ----------------------
 
 // Configura porta a ser ouvida
-
 app.listen(process.env.PORT, () => {
   console.log(`Aplicativo escutando na porta: ${process.env.PORT}`);
 });
