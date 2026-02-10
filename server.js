@@ -1,5 +1,7 @@
 const express = require('express');
 
+const dotenv = require('dotenv');
+
 const cors = require('cors');
 
 const helmet = require('helmet');
@@ -31,13 +33,24 @@ const ForbiddenError = require('./errors/ForbiddenError');
 // Dotenv
 // --------
 
+// Carrega dotenv dinamicamente
 // Pacote dotenv só lê .env., mas é possível especificar qual arquivo carregar
-// Ao rodar scripts (ou comandos), o Express vai pegar variáveis do NODE_ENV definido
-// Ex: npm run dev vai pegar variáveis do .env.development.
-require('dotenv').config({
+// Ao rodar scripts (ou comandos), o Express pega variáveis do NODE_ENV definido
+// Ex: npm run dev pega variáveis do .env.development
+const resultEnv = dotenv.config({
   path: `.env.${process.env.NODE_ENV}`,
 });
 
+// Loga retorno sobre .env, se estiver em ambiente de desenvolvimento
+if (process.env.NODE_ENV === 'development') {
+  if (resultEnv.error) {
+    console.warn(
+      `Nenhum arquivo .env.${process.env.NODE_ENV} encontrado — usando fallbacks`,
+    );
+  } else {
+    console.log(`Arquivo env carregado: .env.${process.env.NODE_ENV}`);
+  }
+}
 // Executa função de configuração env: fallback para desenvolvimento e verificação
 // para produção
 require('./utils/configEnv')();
@@ -234,8 +247,7 @@ mongoose
 // ----------------------
 
 // Configura porta a ser ouvida
-const { PORT } = process.env;
 
-app.listen(PORT, () => {
-  console.log(`Aplicativo escutando na porta: ${PORT}`);
+app.listen(process.env.PORT, () => {
+  console.log(`Aplicativo escutando na porta: ${process.env.PORT}`);
 });
