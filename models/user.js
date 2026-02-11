@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const validator = require('validator');
 const bcrypt = require('bcryptjs');
 const Unauthorized = require('../errors/UnauthorizedError');
+const { msgOfErrorUnauthorizedLogin } = require('../utils/errorsMsgs');
 
 // Cria o esquema para usuário
 const userSchema = new mongoose.Schema({
@@ -45,7 +46,7 @@ userSchema.statics.findUserByCredentials = async function findUserByCredentials(
       // permissão para login: para não revelar se o e-mail existe ou não, por questão de
       // segurança: evita enumeration attacks (ataques que descobrem quais e-mails estão
       // cadastrados)
-      throw new Unauthorized('E-mail ou senha incorretos');
+      throw new Unauthorized(`${msgOfErrorUnauthorizedLogin}`);
     });
 
   // Se encontrado, compara o hash da senha fornecida com a salva no banco de dados
@@ -53,7 +54,7 @@ userSchema.statics.findUserByCredentials = async function findUserByCredentials(
 
   // Se não coincidir, retorna 401
   if (!isMatched) {
-    throw new Unauthorized('E-mail ou senha incorretos');
+    throw new Unauthorized(`${msgOfErrorUnauthorizedLogin}`);
   }
 
   // Se coincidir a autenticação foi bem-sucedida: retorna o objeto do usuário no

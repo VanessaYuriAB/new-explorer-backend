@@ -5,6 +5,10 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 const ConflictError = require('../errors/ConflictError');
 const NotFoundError = require('../errors/NotFoundError');
+const {
+  msgOfErrorConflict,
+  msgOfErrorNotFoundUser,
+} = require('../utils/errorsMsgs');
 const handleAsync = require('../utils/asyncHandlerControllers');
 
 // O manipulador de solicitação createUser
@@ -16,7 +20,7 @@ const createUser = async (req, res) => {
   const isEmailDuplicate = await User.findOne({ email: req.body.email });
 
   if (isEmailDuplicate !== null) {
-    throw new ConflictError('Usuário já cadastrado');
+    throw new ConflictError(`${msgOfErrorConflict}`);
   }
 
   // Codificação de senha em hash
@@ -64,7 +68,7 @@ const getUser = async (req, res) => {
   // O middleware de autenticação já garante que req.user exista, incluindo o campo _id
 
   const user = await User.findById(req.user._id).orFail(() => {
-    throw new NotFoundError('Cadastro de usuário não encontrado');
+    throw new NotFoundError(`${msgOfErrorNotFoundUser}`);
   });
 
   res.send({ user });

@@ -1,5 +1,6 @@
 const crypto = require('crypto');
 const ConfigError = require('../errors/ConfigError');
+const { msgOfErrorConfig } = require('./errorsMsgs');
 
 const configEnv = () => {
   // Define fallbacks para variáveis em ambiente de desenvolvimento
@@ -33,7 +34,7 @@ const configEnv = () => {
 
     requiredEnvVars.forEach((varName) => {
       if (!process.env[varName]) {
-        throw new ConfigError(`${varName} é obrigatório em produção!`);
+        throw new ConfigError(`${varName} ${msgOfErrorConfig}`);
       }
     });
   }

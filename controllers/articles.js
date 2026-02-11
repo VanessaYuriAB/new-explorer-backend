@@ -3,6 +3,10 @@
 const Articles = require('../models/article');
 const NotFoundError = require('../errors/NotFoundError');
 const ForbiddenError = require('../errors/ForbiddenError');
+const {
+  msgOfErrorNotFoundArticle,
+  msgOfErrorForbidden,
+} = require('../utils/errorsMsgs');
 const handleAsync = require('../utils/asyncHandlerControllers');
 
 // O manipulador de solicitação getUserArticles
@@ -72,15 +76,13 @@ const deleteUserArticles = async (req, res) => {
   const articleToUnsave = await Articles.findById(req.params.articleId)
     .select('+owner') // para o campo retornar neste find
     .orFail(() => {
-      throw new NotFoundError('Cadastro de artigo não encontrado');
+      throw new NotFoundError(`${msgOfErrorNotFoundArticle}`);
     });
 
   // Verifica se o usuário atual é um salvador do artigo atual para poder prosseguir os
   // próximos passos do controlador
   if (!articleToUnsave.owner.includes(req.user._id)) {
-    throw new ForbiddenError(
-      'Você não pode des-salvar um artigo que não está salvo por você.',
-    );
+    throw new ForbiddenError(`${msgOfErrorForbidden}`);
   }
 
   // Se o artigo estiver salvo por apenas um usuário, no caso o usuário atual (verificado

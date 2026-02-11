@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const UnauthorizedError = require('../errors/UnauthorizedError');
+const { msgOfErrorUnauthorizedToken } = require('../utils/errorsMsgs');
 
 const handleAuth = (req, res, next) => {
   // Primeiro, obtenção do cabeçalho com o token de autorização
@@ -26,7 +27,7 @@ const handleAuth = (req, res, next) => {
   try {
     payload = jwt.verify(token, process.env.JWT_SECRET);
   } catch (error) {
-    throw new UnauthorizedError('Autorização necessária, o token é inválido!');
+    throw new UnauthorizedError(`${msgOfErrorUnauthorizedToken}`);
   }
 
   // Adiciona o payload à propriedade req.user, garantindo que próximos middlewares possam
