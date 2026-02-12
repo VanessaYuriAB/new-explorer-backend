@@ -16,7 +16,7 @@ const configEnv = () => {
       process.env.JWT_SECRET || crypto.randomBytes(32).toString('hex');
     process.env.CSP_CONNECT_SRC =
       process.env.CSP_CONNECT_SRC ||
-      'http://localhost:3001,https://newsapi.org';
+      'http://localhost:3001,https://api.newsexplorer.sevencomets.com,https://newsapi.org';
     process.env.RATE_LIMIT_MAX = process.env.RATE_LIMIT_MAX || 1000;
   }
 
