@@ -385,6 +385,7 @@ npm run dev
 
 ## 📈 11. Melhorias
 
+- Adicionar conteúdo sobre o `.nvmrc` aqui no `README` do projeto
 - Adicionar testes automatizados (`Jest` e `SuperTest`)
 
 [Voltar ao topo 🔝](#top)
