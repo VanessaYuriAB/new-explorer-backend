@@ -194,7 +194,7 @@ Os prints a seguir demonstram o funcionamento real dos middlewares, rotas e logs
 
 #### ➡️ `request.log`, ilustrando o fluxo de autenticação e manipulação de artigos na API:
 
-PRINT
+![Request Log](./docs/images/request-log.png)
 
 - _`POST /signup` → usuário criado com sucesso (`201`)_
 - _`POST /signin` → usuário autenticado (`200`)_
@@ -223,7 +223,7 @@ Snippet modelo para cada log:
 
 #### ➡️ `error.log`, registro de quando o middleware de `rate limit` é acionado:
 
-PRINT
+![Error Log](./docs/images/error-log.png)
 
 Snippet higienizado:
 
@@ -255,7 +255,7 @@ Requisições no `Postman` mostrando:
 
 - `/signup`
 
-PRINT
+![Signup](./docs/images/signup.png)
 
 Snippet:
 
@@ -272,7 +272,7 @@ Snippet:
 
 - `/signin`
 
-PRINT
+![Signin](./docs/images/signin.png)
 
 Snippet:
 
@@ -288,11 +288,11 @@ Snippet:
 
 - Operação `POST /articles`
 
-PRINT
+![Post Artciles](./docs/images/post-articles.png)
 
 - Operação `GET /articles`
 
-PRINT
+![Get Articles](./docs/images/get-articles.png)
 
 📌 Token ocultado por segurança.
 
