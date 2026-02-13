@@ -3,9 +3,10 @@ const ConfigError = require('../errors/ConfigError');
 const { msgOfErrorConfig } = require('./errorsMsgs');
 
 const configEnv = () => {
-  // Define fallbacks para variáveis em ambiente de desenvolvimento
+  // Define fallbacks para variáveis em ambientes diferentes de produção (ex:
+  // desenvolvimento e teste)
   // Para app rodar mesmo sem arquivo .env
-  if (process.env.NODE_ENV === 'development') {
+  if (process.env.NODE_ENV !== 'production') {
     process.env.PORT = process.env.PORT || 3001;
     process.env.MONGODB_URI =
       process.env.MONGODB_URI || 'mongodb://localhost:27017';
