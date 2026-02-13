@@ -44,6 +44,7 @@ if (process.env.NODE_ENV === 'development') {
     console.log(`Arquivo env carregado: .env.${process.env.NODE_ENV}`);
   }
 }
+
 // Executa função de configuração env: fallback para desenvolvimento e verificação
 // para produção
 require('./utils/configEnv')();
