@@ -322,6 +322,33 @@ npm run dev
 
 📌 O projeto possui fallbacks para as variáveis de ambiente, portanto roda normalmente sem a configuração de um arquivo `.env`. Entretanto, há um `.env.template` como modelo.
 
+📌 Uso do `.nvmrc`: este arquivo define a versão exata do `Node.js` utilizada no desenvolvimento e no ambiente de produção.
+
+**Requisito**: para que o comando `nvm use` funcione corretamente, é necessário ter o **`NVM` (Node Version Manager) instalado, e não apenas o `Node`**. Guia oficial: [`https://github.com/nvm-sh/nvm`](https://github.com/nvm-sh/nvm).
+
+Como ativar a versão correta do `Node`:
+
+```Shell
+nvm use
+```
+
+O `NVM` irá ler automaticamente o arquivo `.nvmrc` e ativar a versão indicada.
+
+Caso a versão não esteja instalada:
+
+```Shell
+nvm install
+```
+
+No servidor (`VM`):
+
+```Shell
+nvm use
+npm install
+```
+
+Isso garante que tanto a máquina local quanto a `VM` usem a **mesma versão do `Node`**, evitando erros de dependências sensíveis à versão, por exemplo o `bcrypt`.
+
 [Voltar ao topo 🔝](#top)
 
 ---
@@ -330,11 +357,49 @@ npm run dev
 
 ## 🔐 8. Implantação
 
+### Ambiente de Produção (`PM2` + `VM`):
+
 - Servidor configurado na nuvem (`Google Cloud` recomendado)
 - Domínio configurado e apontando para o servidor
 - Certificados `HTTPS` instalados
-- Variáveis de ambiente definidas no servidor
+- Variáveis de ambiente definidas no servidor, no arquivo `.env.production`, utilizando o arquivo `ecosystem.config.js` para iniciar o processo do `PM2`com ambiente em produção
 - API acessível via domínio: `https://api.newsexplorer.sevencomets.com`
+
+### Arquivo `ecosystem.config.js`:
+
+O projeto utiliza o arquivo para gerenciar o processo em produção via `PM2`, garantindo restart automático, logs persistentes e variáveis de ambiente específicas para produção.
+
+```JavaScript
+module.exports = {
+  apps: [
+    {
+      name: 'news-explorer-backend',
+      script: 'server.js',
+      env: {
+        NODE_ENV: 'development',
+      },
+      env_production: {
+        NODE_ENV: 'production',
+      },
+    },
+  ],
+};
+```
+
+Permitindo iniciar o back‑end com:
+
+```Shell
+pm2 start ecosystem.config.js --env production
+```
+
+E manter o processo ativo mesmo após reinicialização da `VM`:
+
+```Shell
+pm2 startup
+pm2 save
+```
+
+Assim, a API permanece estável, monitorada e pronta para receber tráfego em produção.
 
 [Voltar ao topo 🔝](#top)
 
@@ -385,7 +450,6 @@ npm run dev
 
 ## 📈 11. Melhorias
 
-- Adicionar conteúdo sobre o `.nvmrc` aqui no `README` do projeto
 - Adicionar testes automatizados (`Jest` e `SuperTest`)
 
 [Voltar ao topo 🔝](#top)
