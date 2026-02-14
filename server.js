@@ -1,30 +1,9 @@
-const express = require('express');
-
-const dotenv = require('dotenv');
-
-const cors = require('cors');
-
-const helmet = require('helmet');
-
-const mongoose = require('mongoose');
-
-const { errors } = require('celebrate');
-
-const routes = require('./routes/index');
-
-const limiter = require('./middlewares/limiter');
-
-const { requestLogger, errorLogger } = require('./middlewares/logger');
-
-const notFoundPage = require('./middlewares/notFoundPage');
-
-const handleError = require('./middlewares/errorHandler');
-
-const ForbiddenError = require('./errors/ForbiddenError');
-
 // --------
 // Dotenv
 // --------
+
+// 1) Carrega dotenv primeiro de tudo — absolutamente no topo
+const dotenv = require('dotenv');
 
 // Carrega dotenv dinamicamente
 // Pacote dotenv só lê .env., mas é possível especificar qual arquivo carregar
@@ -49,6 +28,30 @@ if (process.env.NODE_ENV === 'development') {
 // para produção
 require('./utils/configEnv')();
 
+// 2) Agora sim, importa módulos que podem usar process.env
+
+const express = require('express');
+
+const cors = require('cors');
+
+const helmet = require('helmet');
+
+const mongoose = require('mongoose');
+
+const { errors } = require('celebrate');
+
+const routes = require('./routes/index');
+
+const limiter = require('./middlewares/limiter');
+
+const { requestLogger, errorLogger } = require('./middlewares/logger');
+
+const notFoundPage = require('./middlewares/notFoundPage');
+
+const handleError = require('./middlewares/errorHandler');
+
+const ForbiddenError = require('./errors/ForbiddenError');
+
 // --------
 // Express
 // --------
@@ -60,9 +63,14 @@ const app = express();
 // CORS
 // ------
 
+// fallback seguro, impede crashes se a env estiver faltando
 // '.split(',')' para transformar a string em array
 // '.map()' com 'trim()' para remover qlqr espaço em branco que possa ter
-const allowedCors = process.env.CORS_ORIGIN.split(',').map((url) => url.trim());
+// '.filter(Boolean)' remove entradas vazias automaticamente, tudo que é “falsey”
+const allowedCors = (process.env.CORS_ORIGIN || '')
+  .split(',')
+  .map((url) => url.trim())
+  .filter(Boolean);
 
 // Configuração com opções específicas
 const corsOptions = {
