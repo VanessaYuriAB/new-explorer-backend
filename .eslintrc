@@ -1,0 +1,16 @@
+{
+  // Use Airbnb style guide as base for Node.js environment
+  // Configure Prettier along with ESLint to avoid rule conflicts
+  "extends": ["airbnb-base", "plugin:prettier/recommended"],
+  // Override specific rules to fit project needs
+  "rules": {
+    // Disable no-console rule to allow console statements, useful for debugging
+    "no-console": "off",
+    // Allow dangling underscores in identifiers, specifically for MongoDB _id
+    "no-underscore-dangle": ["error", { "allow": ["_id"] }],
+    // Enforce Unix linebreaks (LF : \n) for consistency across platforms
+    "linebreak-style": ["error", "unix"],
+    // Specifies exceptions, in this case, ignore the next variable
+    "no-unused-vars": ["error", { "argsIgnorePattern": "next" }]
+  }
+}

@@ -1,0 +1,11 @@
+node_modules
+dist
+build
+coverage
+.env
+*.log
+.editorconfig
+.npmrc
+.eslintrc
+package-lock.json
+
