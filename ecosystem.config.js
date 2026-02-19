@@ -5,6 +5,7 @@ module.exports = {
     {
       name: 'news-explorer-backend',
       script: 'server.js',
+      cwd: '/home/emaildavanessayuri/new-explorer-backend',
       env: {
         NODE_ENV: 'development',
       },
