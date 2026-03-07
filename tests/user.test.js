@@ -98,7 +98,10 @@ describe('Suíte de testes de integração (DB + HTTP)', () => {
   describe('POST: /signin', () => {
     beforeEach(async () => {
       await User.deleteMany({});
-      await request.post('/signup').send(userPayload);
+      await request
+        .post('/signup')
+        .send(userPayload)
+        .set('Accept', 'application/json');
     });
 
     test('loga usuário e retorna token JWT em json', async () => {
@@ -155,12 +158,18 @@ describe('Suíte de testes de integração (DB + HTTP)', () => {
 
     beforeEach(async () => {
       await User.deleteMany({});
-      await request.post('/signup').send(userPayload);
+      await request
+        .post('/signup')
+        .send(userPayload)
+        .set('Accept', 'application/json');
 
-      const login = await request.post('/signin').send({
-        email: userPayload.email,
-        password: userPayload.password,
-      });
+      const login = await request
+        .post('/signin')
+        .send({
+          email: userPayload.email,
+          password: userPayload.password,
+        })
+        .set('Accept', 'application/json');
 
       token = login.body.token;
     });
