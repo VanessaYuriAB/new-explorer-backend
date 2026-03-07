@@ -26,11 +26,13 @@ describe('Suíte de testes de integração (DB + HTTP)', () => {
   });
 
   afterAll(async () => {
-    // Limpa a coleção de teste de usuário
-    await User.deleteMany({});
-
     // Desconecta do banco de dados
     await mongoose.disconnect();
+  });
+
+  beforeEach(async () => {
+    // Cleanup: limpa a coleção de teste de usuário
+    await User.deleteMany({});
   });
 
   // Obj de configuração para dados de usuário teste
@@ -45,13 +47,8 @@ describe('Suíte de testes de integração (DB + HTTP)', () => {
   // -> conclui os testes
   // SuperTest se encarrega de conectar-se ao servidor e a partir dele
 
-  // Endpoint de registro de usuário → banco vazio
+  // Endpoint de registro de usuário → banco vazio, sem seed
   describe('POST: /signup', () => {
-    beforeEach(async () => {
-      // Limpa coleção
-      await User.deleteMany({});
-    });
-
     test('cria usuário, escrevendo dados no banco, e retorna json', async () => {
       const res = await request
         .post('/signup')
@@ -94,10 +91,9 @@ describe('Suíte de testes de integração (DB + HTTP)', () => {
     });
   });
 
-  // Endpoint de login de usuário → usuário existente
+  // Endpoint de login de usuário → usuário existente, seed de signup
   describe('POST: /signin', () => {
     beforeEach(async () => {
-      await User.deleteMany({});
       await request
         .post('/signup')
         .send(userPayload)
@@ -152,17 +148,18 @@ describe('Suíte de testes de integração (DB + HTTP)', () => {
     );
   });
 
-  // Endpoint de busca de usuário → usuário + token
+  // Endpoint de busca de usuário → usuário + token, seed de signup e signin
   describe('GET: /users/me', () => {
     let token;
 
     beforeEach(async () => {
-      await User.deleteMany({});
+      // seed signup
       await request
         .post('/signup')
         .send(userPayload)
         .set('Accept', 'application/json');
 
+      // seed signin
       const login = await request
         .post('/signin')
         .send({
