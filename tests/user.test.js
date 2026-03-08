@@ -191,5 +191,64 @@ describe('Suíte de testes de integração (DB + HTTP)', () => {
         }, // retorna _id, email e nome
       });
     });
+
+    // Retornos do Celebrate/Joi: sem header Authorization
+    test('retorna 400 (Celebrate) - Bad Request: sem header Authorization', async () => {
+      const error = await request.get('/users/me');
+
+      expect(error.headers['content-type']).toMatch(/json/);
+      expect(error.statusCode).toBe(400);
+
+      expect(error.body).toMatchObject({
+        message: expect.stringMatching('Validation failed'),
+      });
+    });
+
+    // Retornos do Celebrate/Joi: formato inválido, Authorization não bate regex
+    test('retorna 400 (Celebrate) - Bad Request: formato inválido, Authorization não bate regex', async () => {
+      const invalidToken = token.replace(/\./g, ''); // "aaabbbccc" (sem pontos)
+
+      const error = await request
+        .get('/users/me')
+        .set('authorization', `Bearer ${invalidToken}`);
+
+      expect(error.headers['content-type']).toMatch(/json/);
+      expect(error.statusCode).toBe(400);
+
+      expect(error.body).toMatchObject({
+        message: expect.stringMatching('Validation failed'),
+      });
+    });
+
+    // Formato válido mas token inválido: Authorization bate regex, mas token inválido → 401 (Auth)
+    test('retorna 401 - Unauthorized', async () => {
+      const error = await request
+        .get('/users/me')
+        .set('authorization', `Bearer a.b.c`);
+
+      expect(error.headers['content-type']).toMatch(/json/);
+      expect(error.statusCode).toBe(401);
+
+      expect(error.body).toMatchObject({
+        message: expect.stringMatching(errorMsg.msgOfErrorUnauthorizedToken),
+      });
+    });
+
+    // Token válido mas usuário inexistente → 404 (Controller/orFail)
+    test('retorna 404 - Not Found', async () => {
+      // Deleta o cadastro do usuário criado no seed de signup
+      await User.deleteOne({ email: userPayload.email });
+
+      const error = await request
+        .get('/users/me')
+        .set('authorization', `Bearer ${token}`);
+
+      expect(error.headers['content-type']).toMatch(/json/);
+      expect(error.statusCode).toBe(404);
+
+      expect(error.body).toMatchObject({
+        message: expect.stringMatching(errorMsg.msgOfErrorNotFoundUser),
+      });
+    });
   });
 });
