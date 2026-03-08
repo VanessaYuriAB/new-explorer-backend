@@ -17,7 +17,8 @@ describe('Suíte de testes de integração (DB + HTTP)', () => {
   // Como o server.js já faz mongoose.connect(...) sempre que ele é importado, quando o
   // teste faz 'app = require('../server');' a conexão já é iniciada automaticamente usando
   // as variáveis do .env.test (porque NODE_ENV=test carrega .env.test no seu loader) >
-  // Então não é preciso chamar mongoose.connect() de novo no arquivo de teste, em beforeAll(), apenas aguardar conexão
+  // Então não é preciso chamar mongoose.connect() de novo no arquivo de teste, em
+  // beforeAll(), apenas aguardar conexão
   beforeAll(async () => {
     // Garante que a conexão abriu antes de rodar os testes
     if (mongoose.connection.readyState === 0) {
@@ -78,16 +79,16 @@ describe('Suíte de testes de integração (DB + HTTP)', () => {
         .set('Accept', 'application/json');
 
       // Depois, tenta criar o mesmo usuário (409)
-      const res = await request
+      const error = await request
         .post('/signup')
         .send(userPayload)
         .set('Accept', 'application/json');
 
-      expect(res.headers['content-type']).toMatch(/json/);
-      expect(res.statusCode).toBe(409);
+      expect(error.headers['content-type']).toMatch(/json/);
+      expect(error.statusCode).toBe(409);
 
-      expect(res.body).toHaveProperty('message');
-      expect(res.body.message).toBe(errorMsg.msgOfErrorConflict);
+      expect(error.body).toHaveProperty('message');
+      expect(error.body.message).toEqual(errorMsg.msgOfErrorConflict);
     });
   });
 
@@ -134,16 +135,18 @@ describe('Suíte de testes de integração (DB + HTTP)', () => {
     ])(
       'tenta logar, mas retorna 401 - Unauthorized: ($name)',
       async ({ payload }) => {
-        const res = await request
+        const error = await request
           .post('/signin')
           .send(payload)
           .set('Accept', 'application/json');
 
-        expect(res.headers['content-type']).toMatch(/json/);
-        expect(res.statusCode).toBe(401);
+        expect(error.headers['content-type']).toMatch(/json/);
+        expect(error.statusCode).toBe(401);
 
-        expect(res.body).toHaveProperty('message');
-        expect(res.body.message).toBe(errorMsg.msgOfErrorUnauthorizedLogin);
+        expect(error.body).toHaveProperty('message');
+        expect(error.body.message).toEqual(
+          errorMsg.msgOfErrorUnauthorizedLogin,
+        );
       },
     );
   });
@@ -177,17 +180,18 @@ describe('Suíte de testes de integração (DB + HTTP)', () => {
         .set('authorization', `Bearer ${token}`);
       // No .set(), tanto faz Authorization ou authorization (HTTP headers são
       // case-insensitive)
-      // No res.headers, o Node geralmente normaliza para minúsculo (por isso costuma-se
-      // ler res.headers['content-type'], res.headers['authorization'])
+      // No res.headers, o Node geralmente normaliza para minúsculo (por isso
+      // costuma-se ler res.headers['content-type'], res.headers['authorization'])
 
-      expect(res.status).toEqual(200); // 304 normalmente não entra (é cache de navegador
-      // com ETag/If-None-Match), então não é preciso considerar
+      expect(res.statusCode).toBe(200); // 304 normalmente não entra (é cache de
+      // navegador com ETag/If-None-Match), então não é preciso considerar
 
       expect(res.body).toMatchObject({
         user: {
           email: userPayload.email,
           name: userPayload.name,
-          _id: expect.stringMatching(/^[a-f\d]{24}$/i), // a regex garante que é um ObjectId válido
+          _id: expect.stringMatching(/^[a-f\d]{24}$/i), // a regex garante que é um
+          // ObjectId válido
         }, // retorna _id, email e nome
       });
     });
