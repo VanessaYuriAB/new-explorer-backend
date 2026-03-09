@@ -39,8 +39,8 @@ describe('Suíte de testes de integração (DB + HTTP): article', () => {
   // -> conclui os testes
   // SuperTest se encarrega de conectar-se ao servidor e a partir dele
 
-  // Endpoint de registro de artigo → seeds: usuário cadastrado e logado
-  describe('POST: /articles', () => {
+  // Seeds de auth: usuário cadastrado e logado > envolvendo todos os conjuntos de testes
+  describe('Rotas protegidas (precisa estar logado)', () => {
     let userId;
     let token;
 
@@ -65,115 +65,119 @@ describe('Suíte de testes de integração (DB + HTTP): article', () => {
       token = login.body.token;
     });
 
-    // Artigo ainda não cadastrado > retorna owner, devido .create() no controlador
-    test('cria artigo, escrevendo dados no banco, e retorna 201 com json', async () => {
-      const res = await request
-        .post('/articles')
-        .send(toSavePayload)
-        .set('Accept', 'application/json')
-        .set('authorization', `Bearer ${token}`);
+    // Endpoint de registro de artigo → com seeds de auth
+    describe('POST: /articles', () => {
+      // Artigo ainda não cadastrado > retorna owner, devido .create() no controlador
+      test('cria artigo, escrevendo dados no banco, e retorna 201 com json', async () => {
+        const res = await request
+          .post('/articles')
+          .send(toSavePayload)
+          .set('Accept', 'application/json')
+          .set('authorization', `Bearer ${token}`);
 
-      expect(res.headers['content-type']).toMatch(/json/);
-      expect(res.statusCode).toBe(201);
+        expect(res.headers['content-type']).toMatch(/json/);
+        expect(res.statusCode).toBe(201);
 
-      expect(res.body).toMatchObject(
-        expect.objectContaining({
-          keyword: toSavePayload.tag,
-          title: toSavePayload.title,
-          text: toSavePayload.description,
-          source: toSavePayload.source,
-          link: toSavePayload.url,
-          image: toSavePayload.urlToImage,
-          owner: expect.arrayContaining([
-            expect.stringMatching(/^[a-f\d]{24}$/i),
-          ]),
-          _id: expect.stringMatching(/^[a-f\d]{24}$/i),
-        }),
-      );
+        expect(res.body).toMatchObject(
+          expect.objectContaining({
+            keyword: toSavePayload.tag,
+            title: toSavePayload.title,
+            text: toSavePayload.description,
+            source: toSavePayload.source,
+            link: toSavePayload.url,
+            image: toSavePayload.urlToImage,
+            owner: expect.arrayContaining([
+              expect.stringMatching(/^[a-f\d]{24}$/i),
+            ]),
+            _id: expect.stringMatching(/^[a-f\d]{24}$/i),
+          }),
+        );
 
-      // Valida date normalizando
-      expect(new Date(res.body.date).toISOString()).toBe(
-        new Date(toSavePayload.publishedAt).toISOString(),
-      );
+        // Valida date normalizando
+        expect(new Date(res.body.date).toISOString()).toBe(
+          new Date(toSavePayload.publishedAt).toISOString(),
+        );
 
-      // Valida owner com o id do usuário (capturado no seed signup)
-      expect(res.body.owner).toContainEqual(userId);
-    });
+        // Valida owner com o id do usuário (capturado no seed signup)
+        expect(res.body.owner).toContainEqual(userId);
+      });
 
-    // Artigo já cadastrado (salvo por outro usuário) > não retorna owner, pois não cria o
-    // dado no banco, apenas atualiza
-    test('atualiza artigo, adicionando _id em owner, e retorna 200 com json', async () => {
-      // Dois usuários que salvam o mesmo artigo
-      // Usuário A: seed do beforeEach do describe: usuário cadastrado e logado, com userId e token
+      // Artigo já cadastrado (salvo por outro usuário) > não retorna owner, pois não cria o
+      // dado no banco, apenas atualiza
+      test('atualiza artigo, adicionando _id em owner, e retorna 200 com json', async () => {
+        // Dois usuários salvam o mesmo artigo
+        // Usuário A: seed do beforeEach do describe auth: usuário cadastrado e logado, com
+        // userId e token
 
-      // Usuário B: cria um seed específico para o test(): segundo usuário cadastrado e
-      // logado, apenas com tokenB
-      const userPayloadB = {
-        email: 'usuarioB@teste.com',
-        password: 'usuariobteste123',
-        name: 'UsuárioB Teste',
-      };
+        // Usuário B: cria um seed específico para o test(): segundo usuário cadastrado e
+        // logado, apenas com tokenB
+        const userPayloadB = {
+          email: 'usuarioB@teste.com',
+          password: 'usuariobteste123',
+          name: 'UsuárioB Teste',
+        };
 
-      // Seed signup B
-      await request
-        .post('/signup')
-        .send(userPayloadB)
-        .set('Accept', 'application/json');
+        // Seed signup B
+        await request
+          .post('/signup')
+          .send(userPayloadB)
+          .set('Accept', 'application/json');
 
-      // Seed signin B
-      const loginB = await request
-        .post('/signin')
-        .send({
-          email: userPayloadB.email,
-          password: userPayloadB.password,
-        })
-        .set('Accept', 'application/json');
+        // Seed signin B
+        const loginB = await request
+          .post('/signin')
+          .send({
+            email: userPayloadB.email,
+            password: userPayloadB.password,
+          })
+          .set('Accept', 'application/json');
 
-      const tokenB = loginB.body.token;
+        const tokenB = loginB.body.token;
 
-      // Salva o artigo pelo primeiro usuário
-      const firstPost = await request
-        .post('/articles')
-        .send(toSavePayload)
-        .set('Accept', 'application/json')
-        .set('authorization', `Bearer ${token}`);
+        // Salva o artigo pelo primeiro usuário
+        const firstPost = await request
+          .post('/articles')
+          .send(toSavePayload)
+          .set('Accept', 'application/json')
+          .set('authorization', `Bearer ${token}`);
 
-      // Valida pq articleIdA pode vir undefined e mascarar o problema, se por algum motivo
-      // falhar e retornar erro/200
-      expect(firstPost.statusCode).toBe(201);
-      expect(firstPost.body._id).toMatch(/^[a-f\d]{24}$/i);
+        // Valida pq articleIdA pode vir undefined e mascarar o problema, se por algum motivo
+        // falhar e retornar erro/200
+        expect(firstPost.statusCode).toBe(201);
+        expect(firstPost.body._id).toMatch(/^[a-f\d]{24}$/i);
 
-      const articleIdA = firstPost.body._id; // captura id do artigo salvo para verificação
-      // com o segundo salvamento
+        const articleIdA = firstPost.body._id; // captura id do artigo salvo para verificação
+        // com o segundo salvamento
 
-      // Depois, salva o msm artigo pelo segundo usuário
-      const res = await request
-        .post('/articles')
-        .send(toSavePayload)
-        .set('Accept', 'application/json')
-        .set('authorization', `Bearer ${tokenB}`);
+        // Depois, salva o msm artigo pelo segundo usuário
+        const res = await request
+          .post('/articles')
+          .send(toSavePayload)
+          .set('Accept', 'application/json')
+          .set('authorization', `Bearer ${tokenB}`);
 
-      expect(res.headers['content-type']).toMatch(/json/);
-      expect(res.statusCode).toBe(200); // não deve criar outro artigo
+        expect(res.headers['content-type']).toMatch(/json/);
+        expect(res.statusCode).toBe(200); // não deve criar outro artigo
 
-      // Deve manter dados principais
-      expect(res.body).toMatchObject(
-        expect.objectContaining({
-          keyword: toSavePayload.tag,
-          title: toSavePayload.title,
-          text: toSavePayload.description,
-          source: toSavePayload.source,
-          link: toSavePayload.url,
-          image: toSavePayload.urlToImage,
-          _id: expect.stringMatching(articleIdA), // id do artigo precisa ser igual em
-          // ambos salvamentos
-        }),
-      );
+        // Deve manter dados principais
+        expect(res.body).toMatchObject(
+          expect.objectContaining({
+            keyword: toSavePayload.tag,
+            title: toSavePayload.title,
+            text: toSavePayload.description,
+            source: toSavePayload.source,
+            link: toSavePayload.url,
+            image: toSavePayload.urlToImage,
+            _id: expect.stringMatching(articleIdA), // id do artigo precisa ser igual em
+            // ambos salvamentos
+          }),
+        );
 
-      // Valida date normalizado
-      expect(new Date(res.body.date).toISOString()).toBe(
-        new Date(toSavePayload.publishedAt).toISOString(),
-      );
+        // Valida date normalizado
+        expect(new Date(res.body.date).toISOString()).toBe(
+          new Date(toSavePayload.publishedAt).toISOString(),
+        );
+      });
     });
   });
 });
