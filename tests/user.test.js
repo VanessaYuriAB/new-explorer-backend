@@ -1,5 +1,3 @@
-const mongoose = require('mongoose');
-
 // Setup super-test
 const supertest = require('supertest');
 // Setup express test service
@@ -10,26 +8,11 @@ const request = supertest(app);
 const User = require('../models/user');
 const errorMsg = require('../utils/errorsMsgs');
 
-describe('Suíte de testes de integração (DB + HTTP)', () => {
-  // Teste de banco de dados
+describe('Suíte de testes de integração (DB + HTTP): user', () => {
+  // Banco de dados: conexão (setup) e desconexão (teardown) globais, em jest.setup.js +
+  // configuração do jest.config.js
+
   // Adiciona dados de teste ao banco de dados -> testa -> exclui os dados de teste
-
-  // Como o server.js já faz mongoose.connect(...) sempre que ele é importado, quando o
-  // teste faz 'app = require('../server');' a conexão já é iniciada automaticamente usando
-  // as variáveis do .env.test (porque NODE_ENV=test carrega .env.test no seu loader) >
-  // Então não é preciso chamar mongoose.connect() de novo no arquivo de teste, em
-  // beforeAll(), apenas aguardar conexão
-  beforeAll(async () => {
-    // Garante que a conexão abriu antes de rodar os testes
-    if (mongoose.connection.readyState === 0) {
-      await mongoose.connection.asPromise(); // mongoose v6+
-    }
-  });
-
-  afterAll(async () => {
-    // Desconecta do banco de dados
-    await mongoose.disconnect();
-  });
 
   beforeEach(async () => {
     // Cleanup: limpa a coleção de teste de usuário
@@ -224,7 +207,8 @@ describe('Suíte de testes de integração (DB + HTTP)', () => {
       });
     });
 
-    // Formato válido mas token inválido: Authorization bate regex, mas token inválido → 401 (Auth)
+    // Formato válido mas token inválido: Authorization bate regex, mas token inválido
+    // → 401 (Auth)
     test('retorna 401 - Unauthorized', async () => {
       const error = await request
         .get('/users/me')

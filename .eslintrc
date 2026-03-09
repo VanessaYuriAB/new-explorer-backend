@@ -20,7 +20,7 @@
   "env": { "node": true },
   "overrides": [
     {
-      "files": ["**/*.test.js"],
+      "files": ["**/*.test.js", "**/*jest.setup.js"],
       "env": { "jest/globals": true },
       "plugins": ["jest"],
       "extends": ["plugin:jest/recommended"]
