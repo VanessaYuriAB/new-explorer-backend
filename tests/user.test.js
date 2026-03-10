@@ -6,7 +6,7 @@ const app = require('../server');
 const request = supertest(app);
 
 const User = require('../models/user');
-const userPayload = require('./fixtures/userPayload');
+const { userPayload } = require('./fixtures/usersPayloads');
 const errorMsg = require('../utils/errorsMsgs');
 
 describe('Suíte de testes de integração (DB + HTTP): user', () => {
