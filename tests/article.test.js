@@ -7,9 +7,7 @@ const request = supertest(app);
 
 const User = require('../models/user');
 const Article = require('../models/article');
-const {
-  userPayload /* , anotherUserPayload */,
-} = require('./fixtures/usersPayloads');
+const { userPayload, anotherUserPayload } = require('./fixtures/usersPayloads');
 
 describe('Suíte de testes de integração (DB + HTTP): article', () => {
   // Banco de dados: conexão (setup) e desconexão (teardown) globais, em jest.setup.js +
@@ -85,6 +83,7 @@ describe('Suíte de testes de integração (DB + HTTP): article', () => {
             keyword: toSavePayload.tag,
             title: toSavePayload.title,
             text: toSavePayload.description,
+            // date: toSavePayload.publishedAt, // normalizado abaixo
             source: toSavePayload.source,
             link: toSavePayload.url,
             image: toSavePayload.urlToImage,
@@ -95,7 +94,7 @@ describe('Suíte de testes de integração (DB + HTTP): article', () => {
           }),
         );
 
-        // Valida date normalizando
+        // Valida date normalizando > pq passa por formatação no front
         expect(new Date(res.body.date).toISOString()).toBe(
           new Date(toSavePayload.publishedAt).toISOString(),
         );
@@ -113,24 +112,19 @@ describe('Suíte de testes de integração (DB + HTTP): article', () => {
 
         // Usuário B: cria um seed específico para o test(): segundo usuário cadastrado e
         // logado, apenas com tokenB
-        const userPayloadB = {
-          email: 'usuarioB@teste.com',
-          password: 'usuariobteste123',
-          name: 'UsuárioB Teste',
-        };
 
         // Seed signup B
         await request
           .post('/signup')
-          .send(userPayloadB)
+          .send(anotherUserPayload)
           .set('Accept', 'application/json');
 
         // Seed signin B
         const loginB = await request
           .post('/signin')
           .send({
-            email: userPayloadB.email,
-            password: userPayloadB.password,
+            email: anotherUserPayload.email,
+            password: anotherUserPayload.password,
           })
           .set('Accept', 'application/json');
 
@@ -232,6 +226,88 @@ describe('Suíte de testes de integração (DB + HTTP): article', () => {
 
           // Deve conter o artigo seedado
           expect(articles.body.userArticles[0]._id).toEqual(article.body._id);
+        });
+      });
+
+      // Endpoint de delete de artigo → com seeds de auth + artigo
+      // Campo 'owner' não retorna na resposta da Api
+      describe('DELETE: /articles/:articleId', () => {
+        // Se o artigo estiver salvo por apenas o usuário atual > deleta o artigo completo
+        // Retorna deletedArticle
+        test('deleta artigo e retorna 200 com json', async () => {
+          // DELETE /articles/:articleId com authorization
+          const deleted = await request
+            .delete(`/articles/${article.body._id}`)
+            .set('authorization', `Bearer ${token}`);
+
+          expect(deleted.headers['content-type']).toMatch(/json/);
+          expect(deleted.statusCode).toBe(200);
+
+          expect(deleted.body).toHaveProperty('deletedArticle');
+          expect(deleted.body.deletedArticle).toMatchObject(expect.any(Object));
+          expect(deleted.body.deletedArticle._id).toEqual(article.body._id);
+        });
+
+        // Se o artigo estiver salvo por mais de um usuário > apenas atualiza o campo owner
+        // Retorna unsavedArticle
+        test('atualiza artigo, removendo _id de owner, e retorna 200 com json', async () => {
+          // Seeds existentes: usuário cadastrado e logado + artigo salvo
+          // Seeds necessários: segundo usuário criado e logado + msm artigo salvo
+
+          // Seed signup B
+          await request
+            .post('/signup')
+            .send(anotherUserPayload)
+            .set('Accept', 'application/json');
+
+          // Seed signin B
+          const loginB = await request
+            .post('/signin')
+            .send({
+              email: anotherUserPayload.email,
+              password: anotherUserPayload.password,
+            })
+            .set('Accept', 'application/json');
+
+          const tokenB = loginB.body.token;
+
+          // Salva o msm artigo pelo segundo usuário
+          const res = await request
+            .post('/articles')
+            .send(toSavePayload)
+            .set('Accept', 'application/json')
+            .set('authorization', `Bearer ${tokenB}`);
+
+          expect(res.headers['content-type']).toMatch(/json/);
+          expect(res.statusCode).toBe(200); // não deve criar outro artigo
+          expect(res.body).toMatchObject(
+            expect.objectContaining({
+              _id: expect.stringMatching(article.body._id), // id do artigo precisa ser
+              // igual em ambos salvamentos, portanto precisa ser o id do primeiro salvamento
+              keyword: toSavePayload.tag,
+              title: toSavePayload.title,
+              text: toSavePayload.description,
+              // date: toSavePayload.publishedAt, // generalizado abaixo, por causa de
+              // formatação do projeto, no front
+              date: expect.any(String),
+              source: toSavePayload.source,
+              link: toSavePayload.url,
+              image: toSavePayload.urlToImage,
+            }),
+          );
+
+          // DELETE /articles/:articleId com authorization
+          // Des-salva pelo usuário padrão, o primeiro
+          const unsaved = await request
+            .delete(`/articles/${article.body._id}`)
+            .set('authorization', `Bearer ${token}`);
+
+          expect(unsaved.headers['content-type']).toMatch(/json/);
+          expect(unsaved.statusCode).toBe(200);
+
+          expect(unsaved.body).toHaveProperty('unsavedArticle');
+          expect(unsaved.body.unsavedArticle).toMatchObject(expect.any(Object));
+          expect(unsaved.body.unsavedArticle._id).toEqual(article.body._id);
         });
       });
     });
