@@ -12,9 +12,10 @@ const handleAsync = require('../utils/asyncHandlerControllers');
 // O manipulador de solicitação getUserArticles
 // Retorna todos os artigos salvos pelo usuário
 const getUserArticles = async (req, res) => {
-  // Busca no banco todos os artigos cujo campo 'owner' contém o ID do usuário
+  // Busca, no banco, todos os artigos cujo campo 'owner' contém o ID do usuário
   // Como 'owner' é um array de ObjectIds, o MongoDB retorna qualquer documento
-  // cujo array contenha req.user._id
+  // cujo array contenha req.user._id - porém, campo owner não retorna na resposta, está
+  // como select: false no schema
   const userArticles = await Articles.find({ owner: req.user._id });
 
   // .find() nunca retorna null; se não houver resultados, retorna sempre um array vazio []

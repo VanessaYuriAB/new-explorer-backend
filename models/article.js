@@ -57,7 +57,7 @@ const articleSchema = new mongoose.Schema({
     // salvar um usuário - [] pq pode ser mais de um
     ref: 'user',
     default: [],
-    select: false, // o banco de dados não devolve esse campo por padrão
+    select: false, // o banco de dados não devolve esse campo por padrão > apenas em queries, qdo feito find, findOne, findById, não inclui o campo por padrão > create, save, new Model() não passam por projeção e, após o método, o campo é retornado na requisição feita
   },
 });
 
