@@ -206,6 +206,34 @@ describe('Suíte de testes de integração (DB + HTTP): article', () => {
         // Garante seed article confiável (não mascara erro)
         assertValidArticleResponse(article);
       });
+
+      // Endpoint de busca de artigos → com seeds de auth + artigo
+      // Campo 'owner' não retorna na resposta da Api
+      describe('GET: /articles', () => {
+        test('lista artigos do usuário', async () => {
+          // GET /articles com authorization
+          const articles = await request
+            .get('/articles')
+            .set('authorization', `Bearer ${token}`);
+
+          expect(articles.headers['content-type']).toMatch(/json/);
+          expect(articles.statusCode).toBe(200);
+
+          // Resposta, body, deve conter a propriedade especificada
+          expect(articles.body).toHaveProperty('userArticles');
+
+          // A propriedade do objeto deve ser um array de objetos
+          expect(articles.body.userArticles).toEqual(
+            expect.arrayOf(expect.any(Object)),
+          );
+
+          // Deve conter apenas um objeto
+          expect(articles.body.userArticles.length).toBe(1);
+
+          // Deve conter o artigo seedado
+          expect(articles.body.userArticles[0]._id).toEqual(article.body._id);
+        });
+      });
     });
   });
 });
