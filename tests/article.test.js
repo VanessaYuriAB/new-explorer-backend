@@ -40,6 +40,63 @@ describe('Suíte de testes de integração (DB + HTTP): article', () => {
   // -> conclui os testes
   // SuperTest se encarrega de conectar-se ao servidor e a partir dele
 
+  // Com erros de validação, Celebrate/Joi (400)
+  describe('Retornam erros de validação, 400 - Bad Request (Celebrate/Joi)', () => {
+    // Função genérica para todos endpoints
+    async function returnBadRequest(testRequest) {
+      const error = await testRequest;
+
+      expect(error.headers['content-type']).toMatch(/json/);
+      expect(error.statusCode).toBe(400);
+
+      expect(error.body).toMatchObject({
+        message: expect.stringMatching('Validation failed'),
+      });
+    }
+
+    // Sem header Authorization
+    describe('Retornam 400, sem header Authorization', () => {
+      // POST
+      test('POST /articles', async () => {
+        expect.assertions(3);
+
+        await returnBadRequest(
+          request
+            .post('/articles')
+            .send(toSavePayload)
+            .set('Accept', 'application/json'),
+        );
+      });
+
+      // GET
+
+      // DELETE
+    });
+
+    // Formato inválido, Authorization não bate regex
+    describe('Retornam 400, formato inválido, Authorization não bate regex', () => {
+      // POST
+      test('POST /articles', async () => {
+        expect.assertions(3);
+
+        await returnBadRequest(
+          request
+            .post('/articles')
+            .send(toSavePayload)
+            .set('Accept', 'application/json')
+            .set('authorization', `Bearer`),
+        );
+      });
+
+      // GET
+
+      // DELETE
+    });
+
+    // Sem dados do body
+    // Ex: com token, mas tag com string vazia no post
+  });
+
   // Com erros de autenticação (401)
   describe('Retornam erros de autenticação, 401 - Unauthorized', () => {
     const invalidToken = `Bearer a.b.c`;
