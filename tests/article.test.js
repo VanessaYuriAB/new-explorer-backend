@@ -292,6 +292,30 @@ describe('Suíte de testes de integração (DB + HTTP): article', () => {
       token = login.body.token;
     });
 
+    // Geração de seed de login para segundo usuário
+    const createSeedLoginB = async () => {
+      // Signup B
+      const signupB = await request
+        .post('/signup')
+        .send(anotherUserPayload)
+        .set('Accept', 'application/json');
+
+      const userIdB = signupB.body.user._id;
+
+      // Signin B
+      const loginB = await request
+        .post('/signin')
+        .send({
+          email: anotherUserPayload.email,
+          password: anotherUserPayload.password,
+        })
+        .set('Accept', 'application/json');
+
+      const tokenB = loginB.body.token;
+
+      return { userIdB, tokenB };
+    };
+
     // Endpoint de registro de artigo → com seeds de auth
     describe('POST: /articles', () => {
       // Artigo ainda não cadastrado > retorna owner, devido .create() no controlador
@@ -337,27 +361,10 @@ describe('Suíte de testes de integração (DB + HTTP): article', () => {
         // Usuário A: seed do beforeEach do describe auth: usuário cadastrado e logado, com
         // userId e token
 
-        // Usuário B: cria um seed específico para o test(): segundo usuário cadastrado e
-        // logado, apenas com tokenB
+        // Usuário B: seed da função genérica do describe auth: segundo usuário cadastrado e
+        // logado, com userIdB e tokenB
 
-        // Seed signup B
-        const registrationB = await request
-          .post('/signup')
-          .send(anotherUserPayload)
-          .set('Accept', 'application/json');
-
-        const userIdB = registrationB.body.user._id;
-
-        // Seed signin B
-        const loginB = await request
-          .post('/signin')
-          .send({
-            email: anotherUserPayload.email,
-            password: anotherUserPayload.password,
-          })
-          .set('Accept', 'application/json');
-
-        const tokenB = loginB.body.token;
+        const { userIdB, tokenB } = await createSeedLoginB();
 
         // Salva o artigo pelo primeiro usuário
         const firstPost = await request
@@ -517,24 +524,7 @@ describe('Suíte de testes de integração (DB + HTTP): article', () => {
           // Seeds existentes: usuário cadastrado e logado + artigo salvo
           // Seeds necessários: segundo usuário criado e logado + msm artigo salvo
 
-          // Seed signup B
-          const registrationB = await request
-            .post('/signup')
-            .send(anotherUserPayload)
-            .set('Accept', 'application/json');
-
-          const userIdB = registrationB.body.user._id;
-
-          // Seed signin B
-          const loginB = await request
-            .post('/signin')
-            .send({
-              email: anotherUserPayload.email,
-              password: anotherUserPayload.password,
-            })
-            .set('Accept', 'application/json');
-
-          const tokenB = loginB.body.token;
+          const { userIdB, tokenB } = await createSeedLoginB();
 
           // Salva o msm artigo pelo segundo usuário
           const res = await request
