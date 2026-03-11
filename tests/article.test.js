@@ -35,18 +35,22 @@ describe('Suíte de testes de integração (DB + HTTP): article', () => {
       'https://cdn.searchenginejournal.com/wp-content/uploads/2026/02/featured-116.png',
   };
 
-  // Geração de seed de artigo para describes de erros
-  const createSeeds = async () => {
-    // Seeds de autenticação
-    const registration = await request
+  // Geração de seed de login para describes de erros
+  const createSeedLogin = async () => {
+    // Cadastro
+    const signup = await request
       .post('/signup')
       .send(userPayload)
       .set('Accept', 'application/json');
 
-    expect(registration.headers['content-type']).toMatch(/json/);
-    expect(registration.statusCode).toBe(201);
-    expect(registration.body).toHaveProperty('user');
+    // Guard: lança erro se o seed não voltar o status esperado
+    if (signup.statusCode !== 201) {
+      throw new Error(
+        `Seed signup falhou em createSeedLogin: ${signup.statusCode} ${JSON.stringify(signup.body)}`,
+      );
+    }
 
+    // Login
     const login = await request
       .post('/signin')
       .send({
@@ -55,22 +59,35 @@ describe('Suíte de testes de integração (DB + HTTP): article', () => {
       })
       .set('Accept', 'application/json');
 
-    expect(login.headers['content-type']).toMatch(/json/);
-    expect(login.statusCode).toBe(200);
-    expect(login.body).toHaveProperty('token');
+    // Guard: lança erro se o seed não voltar o status esperado
+    if (login.statusCode !== 200 || !login.body.token) {
+      throw new Error(
+        `Seed login falhou em createSeedLogin: ${login.statusCode} ${JSON.stringify(login.body)}`,
+      );
+    }
 
-    // Seed de artigo
+    return { login };
+  };
+
+  // Geração de seed de artigo para describes de erros
+  const createSeedArticle = async () => {
+    // Seed login
+    const { login } = await createSeedLogin();
+
     const article = await request
       .post('/articles')
       .send(toSavePayload)
       .set('Accept', 'application/json')
       .set('authorization', `Bearer ${login.body.token}`);
 
-    expect(article.headers['content-type']).toMatch(/json/);
-    expect(article.statusCode).toBe(201);
-    expect(article.body._id).toMatch(/^[a-f\d]{24}$/i);
+    // Guard: lança erro se o seed não voltar o status esperado
+    if (article.statusCode !== 201 || !article.body._id) {
+      throw new Error(
+        `Seed article falhou em createSeedArticle: ${article.statusCode} ${JSON.stringify(article.body)}`,
+      );
+    }
 
-    return { article, login };
+    return { article };
   };
 
   // Testes de solicitações HTTP (endpoints)
@@ -115,10 +132,10 @@ describe('Suíte de testes de integração (DB + HTTP): article', () => {
 
       // DELETE
       test('DELETE /articles/:articleId', async () => {
-        expect.assertions(12);
+        expect.hasAssertions();
 
         // Seed de artigo
-        const { article } = await createSeeds();
+        const { article } = await createSeedArticle();
 
         await returnBadRequest(request.delete(`/articles/${article.body._id}`));
       });
@@ -150,10 +167,10 @@ describe('Suíte de testes de integração (DB + HTTP): article', () => {
 
       // DELETE
       test('DELETE /articles/:articleId', async () => {
-        expect.assertions(12);
+        expect.hasAssertions();
 
         // Seed de artigo
-        const { article } = await createSeeds();
+        const { article } = await createSeedArticle();
 
         await returnBadRequest(
           request
@@ -166,10 +183,10 @@ describe('Suíte de testes de integração (DB + HTTP): article', () => {
     // Body inválido, no POST
     // Ex: com token, mas tag com string vazia no body
     test('POST /articles com body inválido', async () => {
-      expect.assertions(12);
+      expect.hasAssertions();
 
-      // Seed
-      const { login } = await createSeeds();
+      // Seed de login
+      const { login } = await createSeedLogin();
 
       await returnBadRequest(
         request
@@ -181,10 +198,10 @@ describe('Suíte de testes de integração (DB + HTTP): article', () => {
 
     // Params inválido, no DELETE
     test('DELETE /articles/:articleId com params inválido', async () => {
-      expect.assertions(12);
+      expect.hasAssertions();
 
-      // Seed
-      const { login } = await createSeeds();
+      // Seed de login
+      const { login } = await createSeedLogin();
 
       const badArticleId = '123';
 
@@ -236,10 +253,10 @@ describe('Suíte de testes de integração (DB + HTTP): article', () => {
 
     // no DELETE
     test('DELETE /articles/:articleId retorna 401 com token inválido', async () => {
-      expect.assertions(12);
+      expect.hasAssertions();
 
       // Seed de artigo
-      const { article } = await createSeeds();
+      const { article } = await createSeedArticle();
 
       await returnUnauthorized(
         request
