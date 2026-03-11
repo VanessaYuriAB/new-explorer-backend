@@ -79,7 +79,31 @@ const deleteUserArticles = async (req, res) => {
 
   // Verifica se o usuário atual é um salvador do artigo atual para poder prosseguir os
   // próximos passos do controlador
-  if (!articleToUnsave.owner.includes(req.user._id)) {
+
+  // articleToUnsave.owner é um array de ObjectId (Mongoose) e req.user._id é string,
+  // portanto podemos converter a lista de owner para string, com
+  // 'const isOwner = articleToUnsave.owner.some((id) => String(id) === userId);' ou
+  // utilizar o método '.equals()' pq ObjectId.equals() aceita string e compara pelo
+  // valor do id
+
+  // O método .equals() é da classe ObjectId do MongoDB, exposta no Node.js via driver
+  // oficial do MongoDB e Mongoose
+  // No caso, ele vem de mongoose.Types.ObjectId ou, internamente, do ObjectId retornado
+  // pelo Mongoose quando lê um documento
+  // Pode ser usado sem importar nada porque articleToUnsave.owner já contém instâncias
+  // de ObjectId, então cada id dentro do array já tem o método .equals() disponível
+
+  // id.equals(req.user._id) funciona mesmo quando req.user._id é string pq compara o
+  // valor do ObjectId, não a referência do objeto - então, isso funciona:
+  // 'ObjectId('abc').equals('abc') // true' e isso tbm:
+  // 'ObjectId('abc').equals(ObjectId('abc')) // true'
+  // Enquanto não funciona com os métodos '===' ou 'includes'
+
+  const isOwner = articleToUnsave.owner.some((id) => {
+    return id.equals(req.user._id);
+  });
+
+  if (!isOwner) {
     throw new ForbiddenError(`${msgOfErrorForbidden}`);
   }
 
@@ -98,7 +122,9 @@ const deleteUserArticles = async (req, res) => {
   const unsavedArticle = await Articles.findByIdAndUpdate(
     req.params.articleId,
     // Remove o _id do usuário do array owner
-    { $pull: { owner: req.user._id } },
+    { $pull: { owner: req.user._id } }, // mongoose faz casting da string, mas pode ser
+    // padronizado na autenticação, com: req.user._id = new mongoose.Types.ObjectId
+    // (payload._id);
     { new: true, runValidators: true },
   );
   return res.send({ unsavedArticle });
