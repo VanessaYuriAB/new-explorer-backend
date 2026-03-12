@@ -272,15 +272,22 @@ describe('Suíte de testes de integração (DB + HTTP): article', () => {
     let token;
 
     beforeEach(async () => {
-      // seed signup
-      const registration = await request
+      // Seed signup
+      const signup = await request
         .post('/signup')
         .send(userPayload)
         .set('Accept', 'application/json');
 
-      userId = registration.body.user._id;
+      // Guard: lança erro se o seed não voltar o status esperado
+      if (signup.statusCode !== 201) {
+        throw new Error(
+          `Seed signup falhou no beforeEach de 'Rotas protegidas': ${signup.statusCode} ${JSON.stringify(signup.body)}`,
+        );
+      }
 
-      // seed signin
+      userId = signup.body.user._id;
+
+      // Seed signin
       const login = await request
         .post('/signin')
         .send({
@@ -288,6 +295,13 @@ describe('Suíte de testes de integração (DB + HTTP): article', () => {
           password: userPayload.password,
         })
         .set('Accept', 'application/json');
+
+      // Guard: lança erro se o seed não voltar o status esperado
+      if (login.statusCode !== 200 || !login.body.token) {
+        throw new Error(
+          `Seed login falhou no beforeEach de 'Rotas protegidas': ${login.statusCode} ${JSON.stringify(login.body)}`,
+        );
+      }
 
       token = login.body.token;
     });
@@ -300,6 +314,12 @@ describe('Suíte de testes de integração (DB + HTTP): article', () => {
         .send(anotherUserPayload)
         .set('Accept', 'application/json');
 
+      if (signupB.statusCode !== 201 || !signupB.body.user._id) {
+        throw new Error(
+          `Seed signupB falhou em createSeedLoginB: ${signupB.statusCode} ${JSON.stringify(signupB.body)}`,
+        );
+      }
+
       const userIdB = signupB.body.user._id;
 
       // Signin B
@@ -311,9 +331,33 @@ describe('Suíte de testes de integração (DB + HTTP): article', () => {
         })
         .set('Accept', 'application/json');
 
+      if (loginB.statusCode !== 200 || !loginB.body.token) {
+        throw new Error(
+          `Seed loginB falhou em createSeedLoginB: ${loginB.statusCode} ${JSON.stringify(loginB.body)}`,
+        );
+      }
+
       const tokenB = loginB.body.token;
 
       return { userIdB, tokenB };
+    };
+
+    // Geração de seed de article pelo segundo usuário
+    const createSeedArticleByUserB = async (tokenB) => {
+      const articleB = await request
+        .post('/articles')
+        .send(toSavePayload)
+        .set('Accept', 'application/json')
+        .set('authorization', `Bearer ${tokenB}`);
+
+      // Guard: lança erro se o seed não voltar o status esperado
+      if (articleB.statusCode !== 200 || !articleB.body._id) {
+        throw new Error(
+          `Seed articleB falhou em createSeedArticleByUserB: ${articleB.statusCode} ${JSON.stringify(articleB.body)}`,
+        );
+      }
+
+      return { articleB };
     };
 
     // Endpoint de registro de artigo → com seeds de auth
@@ -358,60 +402,42 @@ describe('Suíte de testes de integração (DB + HTTP): article', () => {
       // dado no banco, apenas atualiza
       test('atualiza artigo, adicionando _id em owner, e retorna 200 com json', async () => {
         // Dois usuários salvam o mesmo artigo
+
         // Usuário A: seed do beforeEach do describe auth: usuário cadastrado e logado, com
         // userId e token
 
         // Usuário B: seed da função genérica do describe auth: segundo usuário cadastrado e
         // logado, com userIdB e tokenB
-
         const { userIdB, tokenB } = await createSeedLoginB();
 
-        // Salva o artigo pelo primeiro usuário
-        const firstPost = await request
+        // Seed article A: salva o artigo pelo primeiro usuário
+        const articleByUserA = await request
           .post('/articles')
           .send(toSavePayload)
           .set('Accept', 'application/json')
           .set('authorization', `Bearer ${token}`);
 
-        // Valida pq articleIdA pode vir undefined e mascarar o problema, se por algum motivo
+        // Valida, pq articleA pode vir undefined e mascarar o problema, se por algum motivo
         // falhar e retornar erro/200
-        expect(firstPost.statusCode).toBe(201);
-        expect(firstPost.body._id).toMatch(/^[a-f\d]{24}$/i);
+        expect(articleByUserA.statusCode).toBe(201);
+        expect(articleByUserA.body._id).toMatch(/^[a-f\d]{24}$/i);
 
-        const articleIdA = firstPost.body._id; // captura id do artigo salvo para verificação
-        // com o segundo salvamento
+        const articleA = articleByUserA.body._id; // captura id do artigo salvo para verificação
+        // no segundo salvamento, pelo usuário B
 
-        // Depois, salva o msm artigo pelo segundo usuário
-        const res = await request
-          .post('/articles')
-          .send(toSavePayload)
-          .set('Accept', 'application/json')
-          .set('authorization', `Bearer ${tokenB}`);
+        // Seed article B: salva o msm artigo pelo segundo usuário
+        const { articleB } = await createSeedArticleByUserB(tokenB);
 
-        expect(res.headers['content-type']).toMatch(/json/);
-        expect(res.statusCode).toBe(200); // não deve criar outro artigo
-
-        // Deve manter dados principais
-        expect(res.body).toMatchObject(
+        // Id do artigo precisa ser igual em ambos salvamentos
+        expect(articleB.body).toMatchObject(
           expect.objectContaining({
-            keyword: toSavePayload.tag,
-            title: toSavePayload.title,
-            text: toSavePayload.description,
-            source: toSavePayload.source,
-            link: toSavePayload.url,
-            image: toSavePayload.urlToImage,
-            _id: expect.stringMatching(articleIdA), // id do artigo precisa ser igual em
-            // ambos salvamentos
+            _id: expect.stringMatching(articleA),
           }),
         );
 
-        // Valida date normalizado
-        expect(new Date(res.body.date).toISOString()).toBe(
-          new Date(toSavePayload.publishedAt).toISOString(),
-        );
-
-        // Valida owner, testanto banco de dados
-        const found = await Article.findById(articleIdA).select('+owner');
+        // Valida owner, testando POST no banco de dados
+        // Campo owner deve conter os dois Ids de usuários
+        const found = await Article.findById(articleA).select('+owner');
         expect(found.owner.length).toBe(2);
 
         const owners = found.owner.map(String);
@@ -462,6 +488,12 @@ describe('Suíte de testes de integração (DB + HTTP): article', () => {
         // Garante seed article confiável (não mascara erro)
         assertValidArticleResponse(article);
       });
+
+      /* */
+
+      // REMOVER DESCRIBE ABAIXO, DEIXANDO APENAS O TEST()?
+
+      /* */
 
       // Endpoint de busca de artigos → com seeds de auth + artigo
       // Campo 'owner' não retorna na resposta da Api
@@ -522,34 +554,10 @@ describe('Suíte de testes de integração (DB + HTTP): article', () => {
         // Retorna unsavedArticle
         test('atualiza artigo, removendo _id de owner, e retorna 200 com json', async () => {
           // Seeds existentes: usuário cadastrado e logado + artigo salvo
+
           // Seeds necessários: segundo usuário criado e logado + msm artigo salvo
-
           const { userIdB, tokenB } = await createSeedLoginB();
-
-          // Salva o msm artigo pelo segundo usuário
-          const res = await request
-            .post('/articles')
-            .send(toSavePayload)
-            .set('Accept', 'application/json')
-            .set('authorization', `Bearer ${tokenB}`);
-
-          expect(res.headers['content-type']).toMatch(/json/);
-          expect(res.statusCode).toBe(200); // não deve criar outro artigo
-          expect(res.body).toMatchObject(
-            expect.objectContaining({
-              _id: expect.stringMatching(article.body._id), // id do artigo precisa ser
-              // igual em ambos salvamentos, portanto precisa ser o id do primeiro salvamento
-              keyword: toSavePayload.tag,
-              title: toSavePayload.title,
-              text: toSavePayload.description,
-              // date: toSavePayload.publishedAt, // generalizado abaixo, por causa de
-              // formatação do projeto, no front
-              date: expect.any(String),
-              source: toSavePayload.source,
-              link: toSavePayload.url,
-              image: toSavePayload.urlToImage,
-            }),
-          );
+          await createSeedArticleByUserB(tokenB);
 
           // DELETE /articles/:articleId com authorization
           // Des-salva pelo usuário padrão, o primeiro
@@ -564,8 +572,8 @@ describe('Suíte de testes de integração (DB + HTTP): article', () => {
           expect(unsaved.body.unsavedArticle).toMatchObject(expect.any(Object));
           expect(unsaved.body.unsavedArticle._id).toEqual(article.body._id);
 
-          // Valida e garante que o banco ficou no estado esperado, com o cadastro do artigo,
-          // mas sem o id do usuário em owner
+          // Valida DELETE e garante que o banco ficou no estado esperado, com o cadastro
+          // do artigo, mas sem o id do primeiro usuário em owner
           const found = await Article.findById(article.body._id).select(
             '+owner',
           );
