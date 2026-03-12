@@ -72,6 +72,8 @@ describe('Suíte de testes de integração (DB + HTTP): article', () => {
   // Geração de seed de artigo para describes de erros
   const createSeedArticle = async () => {
     // Seed login
+    // Extraído dentro da função pq quem chama createSeedArticle não chama o
+    // createSeedLogin, portanto não duplica o cadastro
     const { login } = await createSeedLogin();
 
     const article = await request
@@ -479,6 +481,7 @@ describe('Suíte de testes de integração (DB + HTTP): article', () => {
       }
 
       beforeEach(async () => {
+        // Seed article
         article = await request
           .post('/articles')
           .send(toSavePayload)
@@ -488,12 +491,6 @@ describe('Suíte de testes de integração (DB + HTTP): article', () => {
         // Garante seed article confiável (não mascara erro)
         assertValidArticleResponse(article);
       });
-
-      /* */
-
-      // REMOVER DESCRIBE ABAIXO, DEIXANDO APENAS O TEST()?
-
-      /* */
 
       // Endpoint de busca de artigos → com seeds de auth + artigo
       // Campo 'owner' não retorna na resposta da Api
@@ -584,6 +581,56 @@ describe('Suíte de testes de integração (DB + HTTP): article', () => {
           const owners = found.owner.map(String);
           expect(owners).toContain(userIdB); // id do usuário B
           expect(owners).not.toContain(userId); // removido usuário padrão
+        });
+
+        // Erros 403 e 404
+        describe('Tenta deletar, mas retorna erro', () => {
+          test('não permite deletar artigo de outro usuário (403)', async () => {
+            // Seeds existentes: login + artigo
+            // Login no beforeEach do describe auth
+            // Artigo no beforeEach do describe article
+
+            // Seed: segundo login
+            const { tokenB } = await createSeedLoginB();
+
+            // Deleta artigoA por usuário B
+            const forbidden = await request
+              .delete(`/articles/${article.body._id}`)
+              .set('authorization', `Bearer ${tokenB}`);
+
+            expect(forbidden.headers['content-type']).toMatch(/json/);
+            expect(forbidden.statusCode).toBe(403);
+            expect(forbidden.body).toMatchObject({
+              message: errorsMsgs.msgOfErrorForbidden,
+            });
+
+            // Garante que artigo ainda existe no banco de dados
+            const found = await Article.findById(article.body._id);
+            expect(found).not.toBeNull();
+          });
+
+          test('não encontra cadastro do artigo (404)', async () => {
+            // Seeds existentes: login + artigo
+            // Login no beforeEach do describe auth
+            // Artigo no beforeEach do describe article
+
+            // Deleta o artigo antes de rodar o teste
+            await Article.deleteOne({ _id: article.body._id });
+
+            const notFound = await request
+              .delete(`/articles/${article.body._id}`)
+              .set('authorization', `Bearer ${token}`);
+
+            expect(notFound.headers['content-type']).toMatch(/json/);
+            expect(notFound.statusCode).toBe(404);
+            expect(notFound.body).toMatchObject({
+              message: errorsMsgs.msgOfErrorNotFoundArticle,
+            });
+
+            // Garante que artigo não existe no banco de dados
+            const found = await Article.findById(article.body._id);
+            expect(found).toBeNull();
+          });
         });
       });
     });
