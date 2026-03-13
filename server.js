@@ -181,6 +181,34 @@ app.use(requestLogger);
 // Rotas
 // --------
 
+// Rota teste CSP
+if (process.env.NODE_ENV === 'development') {
+  app.get('/csp-test', (req, res) => {
+    res.type('html').send(`
+      <!doctype html>
+      <html>
+        <body>
+          <h1>Teste de CSP</h1>
+          <script src="/csp-test.js"></script>
+        </body>
+      </html>
+    `);
+  });
+
+  // Fetch já usa cors por padrão, mas mantido 'mode' por clareza didática
+  app.get('/csp-test.js', (req, res) => {
+    res.type('application/javascript').send(`
+      fetch('http://localhost:3005/test', { mode: 'cors' })
+        .then(() => {
+          console.log('TESTE DE CSP: CSP OK + REQUEST OK');
+        })
+        .catch((e) => {
+          console.log('Se for erro de CONTENT SECURITY POLICY > TESTE DE CSP: BLOCKED > O CSP bloqueou, pois a URL não está na lista de permissão. Se ERR_CONNECTION_REFUSED > TESTE DE CSP: OK > O erro é de rede, na request: CSP permitiu a conexão, browser tentou conectar, não existe servidor em localhost:3005 (porta fechada) e o sistema recusou a conexão.');
+        });
+    `);
+  });
+}
+
 // Rota principal
 app.use('/', routes);
 
