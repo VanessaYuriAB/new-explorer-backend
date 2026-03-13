@@ -24,6 +24,11 @@
 [![Git](https://img.shields.io/badge/Git-Control-646CFF?style=flat&logo=git)](https://git-scm.com/)
 [![GitHub](https://img.shields.io/badge/Repo-Available-181717?style=flat&logo=github&logoColor=white)](https://github.com/VanessaYuriAB/web_project_api_full)
 
+<!-- 🧪 Testes -->
+
+[![Jest](https://img.shields.io/badge/Jest-Testing_Framework-C21325?logo=jest&logoColor=red)](https://jestjs.io/pt-BR/)
+[![Supertest](https://img.shields.io/badge/Supertest-HTTP_Testing-darkgreen)](https://www.npmjs.com/package/supertest)
+
 ---
 
 ## 📑 Índice
@@ -33,13 +38,14 @@
 3. [Estrutura do Projeto 🗃️](#️-3-estrutura-do-projeto)
 4. [Tecnologias Principais 🛠️](#️-4-tecnologias-principais)
 5. [Rotas da API 🌐](#-5-rotas-da-api)
-6. [Screenshots 📸](#-6-screenshots)
-7. [Instalação e Execução 📦](#-7-instalação-e-execução)
-8. [Implantação 🔐](#-8-implantação)
-9. [Checklist Atendido 📋](#-9-checklist-atendido)
-10. [Status do Projeto 🚧](#-10-status-do-projeto)
-11. [Melhorias 📈](#-11-melhorias)
-12. [Autora 👩‍💻](#-12-autora)
+6. [Testes Automatizados 🧪](#-6-testes-automatizados)
+7. [Screenshots 📸](#-7-screenshots)
+8. [Instalação e Execução 📦](#-8-instalação-e-execução)
+9. [Implantação 🔐](#-9-implantação)
+10. [Checklist Atendido 📋](#-10-checklist-atendido)
+11. [Status do Projeto 🚧](#-11-status-do-projeto)
+12. [Melhorias 📈](#-12-melhorias)
+13. [Autora 👩‍💻](#-13-autora)
 
 ---
 
@@ -92,6 +98,19 @@ Este back‑end permite o uso completo do front‑end construído na Fase 1.
 - Validações com `celebrate/Joi`
 - Ambiente de produção com variáveis via `.env`
 
+### Testes Automatizados ✅
+
+- Testes de integração (HTTP + Banco de Dados)
+- Testes com `Jest` e `Supertest`
+- Execução em ambiente isolado (`NODE_ENV=test`)
+- Banco de dados exclusivo para testes (`MongoDB local`)
+- Testes de sucesso e de erro (400, 401, 403, 404)
+- Validação de efeitos colaterais no banco (find, delete)
+- Seeds reutilizáveis para:
+  - Autenticação (signup + signin)
+  - Artigos previamente cadastrados
+- API exportada sem escutar porta durante os testes
+
 [Voltar ao topo 🔝](#top)
 
 ---
@@ -131,12 +150,26 @@ backend/
 ├─ routes/
 │ ├─ articles.js
 │ └─ index.js
+├─ tests/
+│ ├─ fixtures/
+│ │ └─ usersPayloads.js
+│ ├─ integration/
+| │ ├─ article.test.js
+| │ └─ user.test.js
+│ ├─ setup/
+│ └─ jest.setup.js
 ├─ utils/
 │ ├─ asyncHandlerControllers.js
 │ ├─ configEnv.js
 │ └─ errorsMsgs.js
+├─ .env.template
+├─ .gitignore
+├─ .nvmrc
+├─ ecosystem.config.js
 ├─ error.log
+├─ jest.config.js
 ├─ package.json
+├─ README.md
 ├─ request.log
 └─ server.js
 ```
@@ -149,16 +182,30 @@ backend/
 
 ## 🛠️ 4. Tecnologias Principais
 
+### Back‑end
+
 - `Node.js`
 - `Express`
 - `MongoDB` + `Mongoose`
 - `JWT`
 - `bcryptjs`
+
+### Validação, Segurança e Infraestrutura
+
 - `celebrate` / `Joi`
-- `Winston` & `express-winston`
-- `dotenv`
 - `Helmet`
-- `Rate‑Limiter`
+- `express-rate-limit`
+- `dotenv`
+- `Winston` & `express-winston`
+
+### Qualidade e Testes
+
+- `Jest`
+- `Supertest`
+- `ESLint` (Airbnb Base)
+- `Prettier`
+- `Husky`
+- `Lint‑Staged`
 
 [Voltar ao topo 🔝](#top)
 
@@ -180,13 +227,67 @@ backend/
 - `POST /articles`
 - `DELETE /articles/:articleId`
 
+📌 Apenas em desenvolvimento, uma rota `/csp-test` está disponível para validar manualmente o CSP (`connect-src`), garantindo que apenas origens explicitamente permitidas possam ser acessadas pelo navegador. A rota está desativada em produção e teste.
+
 [Voltar ao topo 🔝](#top)
 
 ---
 
-<a id="-6-screenshots"></a>
+<a id="-6-testes-automatizados"></a>
 
-## 📸 6. Screenshots
+## 🧪 6. Testes Automatizados
+
+O projeto possui **testes de integração**, garantindo a confiabilidade da API em diferentes cenários.
+
+### Tecnologias
+
+- `Jest`
+- `Supertest`
+
+### Estratégia de Testes
+
+- Ambiente isolado (`NODE_ENV=test`)
+- Arquivo `.env.test` específico
+- Banco de dados exclusivo para testes
+- A aplicação **não escuta porta** durante os testes
+- Conexão real com **MongoDB local**
+
+### Cobertura
+
+- Autenticação:
+  - Cadastro de usuário
+  - Login e geração de token
+  - Tokens inválidos ou ausentes
+- Artigos:
+  - Criação de artigos
+  - Listagem de artigos por usuário
+  - Exclusão de artigos
+  - Proteção contra exclusão por outros usuários
+- Validações:
+  - Body inválido
+  - Params inválidos
+  - Headers inválidos
+- Erros HTTP:
+  - `400` – Bad Request
+  - `401` – Unauthorized
+  - `403` – Forbidden
+  - `404` – Not Found
+
+### Execução dos testes
+
+```shell
+npm run test
+```
+
+Os testes são executados de forma sequencial (`--runInBand`) para evitar condições de corrida com o banco de dados.
+
+[Voltar ao topo 🔝](#top)
+
+---
+
+<a id="-7-screenshots"></a>
+
+## 📸 7. Screenshots
 
 Os prints a seguir demonstram o funcionamento real dos middlewares, rotas e logs da API em ambiente local.
 
@@ -296,11 +397,13 @@ Snippet:
 
 📌 Token ocultado por segurança.
 
+[Voltar ao topo 🔝](#top)
+
 ---
 
-<a id="-7-instalação-e-execução"></a>
+<a id="-8-instalação-e-execução"></a>
 
-## 📦 7. Instalação e Execução
+## 📦 8. Instalação e Execução
 
 1️⃣ Clone o repositório
 
@@ -324,38 +427,52 @@ npm run dev
 
 📌 Uso do `.nvmrc`: este arquivo define a versão exata do `Node.js` utilizada no desenvolvimento e no ambiente de produção.
 
-**Requisito**: para que o comando `nvm use` funcione corretamente, é necessário ter o **`NVM` (Node Version Manager) instalado, e não apenas o `Node`**. Guia oficial: [`https://github.com/nvm-sh/nvm`](https://github.com/nvm-sh/nvm).
+- Requisito: para que o comando `nvm use` funcione corretamente, é necessário possuir o **`NVM` (Node Version Manager) instalado, não apenas o `Node`**.
 
-Como ativar a versão correta do `Node`:
+- Guia oficial: [`https://github.com/nvm-sh/nvm`](https://github.com/nvm-sh/nvm).
+
+- Como ativar a versão correta do `Node`:
 
 ```Shell
 nvm use
 ```
 
-O `NVM` irá ler automaticamente o arquivo `.nvmrc` e ativar a versão indicada.
+_O `NVM` irá ler automaticamente o arquivo `.nvmrc` e ativar a versão indicada._
 
-Caso a versão não esteja instalada:
+- Caso a versão não esteja instalada:
 
 ```Shell
 nvm install
 ```
 
-No servidor (`VM`):
+- No servidor (`VM`):
 
 ```Shell
 nvm use
 npm install
 ```
 
-Isso garante que tanto a máquina local quanto a `VM` usem a **mesma versão do `Node`**, evitando erros de dependências sensíveis à versão, por exemplo o `bcrypt`.
+_Isso garante que tanto a máquina local quanto a `VM` usem a **mesma versão do `Node`**, evitando erros de dependências sensíveis à versão, por exemplo o `bcrypt`._
+
+### Executar testes
+
+```shell
+npm run test
+```
+
+📌 Durante os testes:
+
+- O servidor não escuta porta
+- O banco utilizado é exclusivo (`DB_NAME=newsexplorerdb_test`)
+- Nenhuma configuração de produção é afetada
 
 [Voltar ao topo 🔝](#top)
 
 ---
 
-<a id="-8-implantação"></a>
+<a id="-9-implantação"></a>
 
-## 🔐 8. Implantação
+## 🔐 9. Implantação
 
 ### Ambiente de Produção (`PM2` + `VM`):
 
@@ -405,9 +522,9 @@ Assim, a API permanece estável, monitorada e pronta para receber tráfego em pr
 
 ---
 
-<a id="-9-checklist-atendido"></a>
+<a id="-10-checklist-atendido"></a>
 
-## 📋 9. Checklist Atendido
+## 📋 10. Checklist Atendido
 
 ✔ Estrutura de pastas seguindo boas práticas
 
@@ -435,30 +552,38 @@ Assim, a API permanece estável, monitorada e pronta para receber tráfego em pr
 
 ---
 
-<a id="-10-status-do-projeto"></a>
+<a id="-11-status-do-projeto"></a>
 
-## 🚧 10. Status do Projeto
+## 🚧 11. Status do Projeto
 
-- Fase 2 concluída (Back‑end)
-- Próxima etapa: Fase 3 - Autorização com React
+Concluído: aplicação full‑stack online 🎉
 
-[Voltar ao topo 🔝](#top)
-
----
-
-<a id="-11-melhorias"></a>
-
-## 📈 11. Melhorias
-
-- Adicionar testes automatizados (`Jest` e `SuperTest`)
+🔗 https://new-explorer-frontend.vercel.app
 
 [Voltar ao topo 🔝](#top)
 
 ---
 
-<a id="-12-autora"></a>
+<a id="-12-melhorias"></a>
 
-## 👩‍💻 12. Autora
+## 📈 12. Melhorias
+
+- Remoção da função utilitária `handleAsync`: como o projeto já utiliza _Express 5.2.1_, exceções lançadas (`throw`) em controllers assíncronos são automaticamente encaminhadas para o middleware central de erros via `next()`. Desta forma, removendo o wrapper e aproveitando o suporte nativo do framework, é possível simplificar o fluxo de tratamento de erros nos controllers e reduzir boilerplate.
+
+- Atualização dos _screenshots do README_: para demonstrar requisições do Postman com o link do _subdomínio da API_, refletindo o ambiente de produção do back‑end.
+
+- Integração dos testes ao CI/CD (_GitHub Actions_).
+- Aumento da cobertura de testes.
+- Testes de carga (_rate limit_).
+- Documentação da API com _Swagger / OpenAPI_.
+
+[Voltar ao topo 🔝](#top)
+
+---
+
+<a id="-13-autora"></a>
+
+## 👩‍💻 13. Autora
 
 Desenvolvido por Vanessa Yuri A. Brito, unindo back‑end e front‑end para criar uma aplicação completa e escalável.
 

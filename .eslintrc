@@ -1,16 +1,38 @@
 {
-  // Use Airbnb style guide as base for Node.js environment
-  // Configure Prettier along with ESLint to avoid rule conflicts
+  // Usa o Airbnb Style Guide como base para Node.js
+  // Integra com Prettier para evitar conflitos de formatação
   "extends": ["airbnb-base", "plugin:prettier/recommended"],
-  // Override specific rules to fit project needs
+
+  // Regras customizadas para atender às necessidades do projeto
   "rules": {
-    // Disable no-console rule to allow console statements, useful for debugging
+    // Permite uso de console (útil para logs e debug no backend)
     "no-console": "off",
-    // Allow dangling underscores in identifiers, specifically for MongoDB _id
+
+    // Permite underscore apenas para o _id do MongoDB
     "no-underscore-dangle": ["error", { "allow": ["_id"] }],
-    // Enforce Unix linebreaks (LF : \n) for consistency across platforms
+
+    // Força padrão Unix (LF) para evitar problemas entre sistemas
     "linebreak-style": ["error", "unix"],
-    // Specifies exceptions, in this case, ignore the next variable
+
+    // Ignora variável "next" não utilizada (middlewares do Express)
     "no-unused-vars": ["error", { "argsIgnorePattern": "next" }]
-  }
+  },
+
+  // Ambiente padrão do projeto
+  "env": { "node": true },
+
+  // Configurações específicas para arquivos de teste
+  // Evita “vazar” globais para o restante do código
+  // Padrão overrides: recomendado para não habilitar Jest no projeto todo
+  "overrides": [
+    {
+      "files": ["**/*.test.js", "**/*jest.setup.js"],
+      "env": { "jest/globals": true },
+      "plugins": ["jest"],
+      "extends": ["plugin:jest/recommended"]
+    }
+  ]
 }
+
+
+
