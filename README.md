@@ -227,6 +227,8 @@ backend/
 - `POST /articles`
 - `DELETE /articles/:articleId`
 
+📌 Apenas em desenvolvimento, uma rota `/csp-test` está disponível para validar manualmente o CSP (`connect-src`), garantindo que apenas origens explicitamente permitidas possam ser acessadas pelo navegador. A rota está desativada em produção e teste.
+
 [Voltar ao topo 🔝](#top)
 
 ---
