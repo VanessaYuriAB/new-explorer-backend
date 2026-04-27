@@ -31,7 +31,7 @@ Thumbs.db
 # CONFIGURAÇÕES DE IDE
 # Pastas e arquivos gerados por IDEs
 .idea/
-.vscode/
+.vscode/*
 
 # AMBIENTE
 # Variáveis sensíveis
@@ -41,5 +41,4 @@ Thumbs.db
 .env.production
 .env.test
 
-# Husky
-.husky/
+
